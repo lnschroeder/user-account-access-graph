@@ -2,7 +2,6 @@
 
 data NodeType = Account | Device | Biometric | Knowledge deriving (Show)
 data Node = Node {
-    id :: Integer,
     name :: String,
     ofType :: NodeType,
     protectedBy :: [Access]
@@ -23,7 +22,7 @@ addNode :: Graph -> Node -> Graph
 -- TODO Urs 
 
 addAccess :: Graph -> Node -> Access -> Graph
--- TODO Niklas
+addAccess graph node access = 
 
 -- main function
 main :: IO ()
