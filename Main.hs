@@ -19,10 +19,10 @@ newtype Graph = Graph {
 } deriving (Show)
 
 addNode :: Graph -> Node -> Graph
--- TODO Urs 
+addNode (Graph g) n = (Graph (g ++ [n]))
 
-addAccess :: Graph -> Node -> Access -> Graph
-addAccess graph node access = 
+-- addAccess :: Graph -> Node -> Access -> Graph
+-- addAccess graph node access = 
 
 -- main function
 main :: IO ()
