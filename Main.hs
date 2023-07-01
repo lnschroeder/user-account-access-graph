@@ -5,30 +5,28 @@ data Node = Node {
     protectedBy :: [[Node]]
 } deriving (Show, Eq)
 
-newtype Graph = Graph {
-    nodes :: [Node]
-} deriving (Show)
+type Graph = [Node]
 
 addNode :: Graph -> Node -> Graph
-addNode (Graph g) n = Graph (g ++ [n])
+addNode g n = g ++ [n]
 
 getNode :: String -> Graph -> Maybe Node
-getNode s (Graph g) = find (\x -> name x == s) g
+getNode s = find (\x -> name x == s)
 
 getNodes :: Graph -> [String] -> [Node]
-getNodes g s = map (\(Just x) -> x)  $ filter (/= Nothing)  $ map (`getNode` g) s
+getNodes g s = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) s
     
 -- adds nodes to the protectedBy field for a given node
 addProtectedBy :: Graph -> String -> [String] -> Graph
-addProtectedBy g = addProtectedBy' g (Graph [])
+addProtectedBy g = addProtectedBy' g []
 
 addProtectedBy' :: Graph -> Graph -> String -> [String] -> Graph 
-addProtectedBy' (Graph []) g _ _ = g
-addProtectedBy' (Graph (x:xs)) (Graph new) nname nnames
-    | name x == nname = addProtectedBy' (Graph xs) (Graph (new ++ [Node nname (protectedBy x ++ [accesses])])) nname nnames
-    | otherwise = addProtectedBy' (Graph xs) (Graph (new ++ [x])) nname nnames
+addProtectedBy' [] g _ _ = g
+addProtectedBy' (x:xs) new nname nnames
+    | name x == nname = addProtectedBy' xs (new ++ [Node nname (protectedBy x ++ [accesses])]) nname nnames
+    | otherwise = addProtectedBy' xs (new ++ [x]) nname nnames
     where
-        accesses = getNodes (Graph $ (x:xs) ++ new) nnames
+        accesses = getNodes ((x:xs) ++ new) nnames
 
 printMermaidProtectedBy :: [Node] -> String -> String
 printMermaidProtectedBy [] n = ""
@@ -42,8 +40,7 @@ printMermaidNode n = printMermaidProtectedBy x nname ++ "\n" ++ printMermaidNode
         nname = name n
 
 printMermaidGraph :: Graph  -> String
-printMermaidGraph (Graph []) = ""
-printMermaidGraph (Graph (x:xs)) = printMermaidNode x ++ printMermaidGraph (Graph xs)
+printMermaidGraph = concatMap printMermaidNode
 
 printMermaidContent :: Graph -> String
 printMermaidContent g = "flowchart TD\n\n" ++ printMermaidGraph g
@@ -51,7 +48,7 @@ printMermaidContent g = "flowchart TD\n\n" ++ printMermaidGraph g
 main :: IO ()
 main = do
     let 
-        initialGraph = Graph []
+        initialGraph = []
         updatedGraph1 = addNode initialGraph Node { name = "pw_Bitwarden", protectedBy = [] }
         updatedGraph2 = addNode updatedGraph1 Node { name = "Phone", protectedBy = [] }
         updatedGraph3 = addNode updatedGraph2 Node { name = "Finger", protectedBy = [] }
