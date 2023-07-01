@@ -1,4 +1,5 @@
 import Data.List (find)
+import Data.Maybe (isJust, fromJust)
 
 data Node = Node {
     name :: String,
@@ -7,26 +8,21 @@ data Node = Node {
 
 type Graph = [Node]
 
-addNode :: Graph -> Node -> Graph
-addNode g n = g ++ [n]
+addNode :: Node -> Graph -> Graph
+addNode n g = g ++ [n]
 
 getNode :: String -> Graph -> Maybe Node
 getNode s = find (\x -> name x == s)
 
-getNodes :: Graph -> [String] -> [Node]
-getNodes g s = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) s
-    
--- adds nodes to the protectedBy field for a given node
-addProtectedBy :: Graph -> String -> [String] -> Graph
-addProtectedBy g = addProtectedBy' g []
+getNodes ::[String] -> Graph ->  [Node]
+getNodes s g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) s
 
-addProtectedBy' :: Graph -> Graph -> String -> [String] -> Graph 
-addProtectedBy' [] g _ _ = g
-addProtectedBy' (x:xs) new nname nnames
-    | name x == nname = addProtectedBy' xs (new ++ [Node nname (protectedBy x ++ [accesses])]) nname nnames
-    | otherwise = addProtectedBy' xs (new ++ [x]) nname nnames
+addProtectedBy :: String -> [String] -> Graph -> Graph 
+addProtectedBy nname nnames g = map (\x -> if name x == nname then updatedNode else x) g
     where
-        accesses = getNodes ((x:xs) ++ new) nnames
+        accesses = getNodes nnames g
+        existingNode = fromJust $ getNode nname g
+        updatedNode = Node nname (protectedBy existingNode ++ [accesses])
 
 printMermaidProtectedBy :: [Node] -> String -> String
 printMermaidProtectedBy [] n = ""
@@ -49,12 +45,12 @@ main :: IO ()
 main = do
     let 
         initialGraph = []
-        updatedGraph1 = addNode initialGraph Node { name = "pw_Bitwarden", protectedBy = [] }
-        updatedGraph2 = addNode updatedGraph1 Node { name = "Phone", protectedBy = [] }
-        updatedGraph3 = addNode updatedGraph2 Node { name = "Finger", protectedBy = [] }
-        updatedGraph4 = addNode updatedGraph3 Node { name = "Bitwarden", protectedBy = [] }
-        updatedGraph5 = addProtectedBy updatedGraph4 "Bitwarden" ["pw_Bitwarden"]
-        updatedGraph6 = addProtectedBy updatedGraph5 "Bitwarden" ["Finger", "Phone"]
+        updatedGraph1 = addNode Node { name = "pw_Bitwarden", protectedBy = [] } initialGraph 
+        updatedGraph2 = addNode Node { name = "Phone", protectedBy = [] } updatedGraph1 
+        updatedGraph3 = addNode Node { name = "Finger", protectedBy = [] } updatedGraph2 
+        updatedGraph4 = addNode Node { name = "Bitwarden", protectedBy = [] } updatedGraph3 
+        updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
+        updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
         -- putStrLn "Graph1:"
     -- putStrLn "Test"
     -- print initialGraph
