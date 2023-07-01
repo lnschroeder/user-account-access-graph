@@ -20,15 +20,34 @@ addProtectedBy' (Graph (x:xs)) (Graph new) nname accesses
     | name x == nname = addProtectedBy' (Graph xs) (Graph (new ++ [Node nname (protectedBy x ++ [accesses])])) nname accesses
     | otherwise = addProtectedBy' (Graph xs) (Graph (new ++ [x])) nname accesses
 
+printMermaidProtectedBy :: [Node] -> String -> String
+printMermaidProtectedBy [] n = ""
+printMermaidProtectedBy (x:xs) n = name x ++ " --> " ++ n ++ "\n" ++ printMermaidProtectedBy xs n
+
+printMermaidNode :: Node -> String
+printMermaidNode (Node n []) = ""
+printMermaidNode n = printMermaidProtectedBy x nname ++ "\n" ++ printMermaidNode (Node nname xs) 
+    where 
+        (x:xs) = protectedBy n
+        nname = name n
+
+printMermaidGraph :: Graph  -> String
+printMermaidGraph (Graph []) = ""
+printMermaidGraph (Graph (x:xs)) = printMermaidNode x ++ printMermaidGraph (Graph xs)
+
+printMermaidContent :: Graph -> String
+printMermaidContent g = "flowchart TD\n\n" ++ printMermaidGraph g
+
 main :: IO ()
 main = do
     let 
         initialGraph = Graph []
-        updatedGraph1 = addNode initialGraph Node { name = "pw_Bitwarden", protectedBy = [[]] }
-        updatedGraph2 = addNode updatedGraph1 Node { name = "Phone", protectedBy = [[]] }
-        updatedGraph3 = addNode updatedGraph2 Node { name = "Finger", protectedBy = [[]] }
-        updatedGraph4 = addNode updatedGraph3 Node { name = "Bitwarden", protectedBy = [[]] }
-        updatedGraph5 = addProtectedBy updatedGraph4 "Bitwarden" [Node { name = "pw_Bitwarden", protectedBy = [[]] }]
+        updatedGraph1 = addNode initialGraph Node { name = "pw_Bitwarden", protectedBy = [] }
+        updatedGraph2 = addNode updatedGraph1 Node { name = "Phone", protectedBy = [] }
+        updatedGraph3 = addNode updatedGraph2 Node { name = "Finger", protectedBy = [] }
+        updatedGraph4 = addNode updatedGraph3 Node { name = "Bitwarden", protectedBy = [] }
+        updatedGraph5 = addProtectedBy updatedGraph4 "Bitwarden" [Node { name = "pw_Bitwarden", protectedBy = [] }]
+        updatedGraph6 = addProtectedBy updatedGraph5 "Bitwarden" [Node { name = "Finger", protectedBy = [] }, Node { name = "Phone", protectedBy = [] }]
         -- putStrLn "Graph1:"
     putStrLn "Test"
     print initialGraph
@@ -37,7 +56,8 @@ main = do
     print updatedGraph3
     print updatedGraph4
     print updatedGraph5
-
+    putStrLn (printMermaidContent updatedGraph6)
+    
     -- updatedGraph2 = test updatedGraph Node { name = "Finger" }
 
 -- Graph {nodes = [Node {name = "pw_Bitwarden", protectedBy = [[]]},Node {name = "Phone", protectedBy = [[]]},Node {name = "Finger", protectedBy = [[]]}]}
