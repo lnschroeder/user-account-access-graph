@@ -21,10 +21,8 @@ type Graph = [Node]
 stringToHexColor :: String -> String
 stringToHexColor s = "#" ++ showHex (hash s `mod` 16777216) ""
 
-toAccess :: [AAG.Node] -> Access
-toAccess ns = Access names (stringToHexColor (concat names))
-    where
-        names = map AAG.name ns
+toAccess :: [String] -> Access
+toAccess ns = Access ns (stringToHexColor (concat ns))
 
 toNode :: AAG.Node -> Node
 toNode n = Node (AAG.name n) (map toAccess (AAG.protectedBy n))
