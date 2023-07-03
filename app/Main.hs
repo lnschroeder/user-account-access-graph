@@ -1,12 +1,6 @@
 import Data.List (find)
 import Data.Maybe (isJust, fromJust)
-
-data Node = Node {
-    name :: String,
-    protectedBy :: [[Node]]
-} deriving (Show, Eq)
-
-type Graph = [Node]
+import AccountAccessGraph (Node(..), Graph)
 
 nodeHasName ::Node -> String -> Bool
 nodeHasName (Node nname _) s = s == nname
