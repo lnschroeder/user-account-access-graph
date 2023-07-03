@@ -33,6 +33,7 @@ executable UserAccountAccessGraph
     -- other-extensions:
     build-depends:    
         base ^>=4.16.4.0,
-        hashable ^>=1.4.2.0
+        hashable ^>=1.4.2.0,
+        split ^>=0.2.3.5
     hs-source-dirs:   app
     default-language: Haskell2010
