@@ -12,10 +12,10 @@ addNode :: Node -> Graph -> Graph
 addNode n g = g ++ [n]
 
 getNode :: String -> Graph -> Maybe Node
-getNode s = find (\x -> name x == s)
+getNode nname = find (\x -> name x == nname)
 
 getNodes ::[String] -> Graph ->  [Node]
-getNodes s g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) s
+getNodes nnames g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) nnames
 
 addProtectedBy :: String -> [String] -> Graph -> Graph 
 addProtectedBy nname nnames g = map (\x -> if name x == nname then updatedNode else x) g
@@ -25,21 +25,21 @@ addProtectedBy nname nnames g = map (\x -> if name x == nname then updatedNode e
         updatedNode = Node nname (protectedBy existingNode ++ [accesses])
 
 printMermaidProtectedBy :: [Node] -> String -> String
-printMermaidProtectedBy [] n = ""
-printMermaidProtectedBy (x:xs) n = name x ++ " --> " ++ n ++ "\n" ++ printMermaidProtectedBy xs n
+printMermaidProtectedBy xs nname = concatMap (\ (Node xname _) -> xname ++ " --> " ++ nname ++ "\n") xs
 
 printMermaidNode :: Node -> String
-printMermaidNode (Node n []) = ""
-printMermaidNode n = printMermaidProtectedBy x nname ++ "\n" ++ printMermaidNode (Node nname xs) 
-    where 
-        (x:xs) = protectedBy n
-        nname = name n
+printMermaidNode (Node nname xs) = 
+    "%% " ++ nname ++ "\n" ++ 
+    nname ++ "\n\n" ++ 
+    concatMap (\ x -> printMermaidProtectedBy x nname ++ "\n") xs
 
 printMermaidGraph :: Graph  -> String
 printMermaidGraph = concatMap printMermaidNode
 
 printMermaidContent :: Graph -> String
-printMermaidContent g = "flowchart TD\n\n" ++ printMermaidGraph g
+printMermaidContent g = 
+    "flowchart TD\n\n" ++ 
+    printMermaidGraph g
 
 main :: IO ()
 main = do
@@ -51,4 +51,5 @@ main = do
         updatedGraph4 = addNode Node { name = "Bitwarden", protectedBy = [] } updatedGraph3 
         updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
         updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
+    print updatedGraph6
     writeFile "graph.mmd" (printMermaidContent updatedGraph6)
