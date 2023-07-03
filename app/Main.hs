@@ -11,5 +11,4 @@ main = do
         updatedGraph4 = addNode Node { name = "Bitwarden", protectedBy = [] } updatedGraph3 
         updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
         updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
-        updatedGraph7 = addProtectedBy "Phone" ["Finger"] updatedGraph6
-    writeFile "graph.dot" (printGraph updatedGraph7)
+    writeFile "graph.dot" (printGraph updatedGraph6)

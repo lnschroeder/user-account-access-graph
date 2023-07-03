@@ -3,6 +3,8 @@ module Graphviz (
 ) where
 
 import qualified AccountAccessGraph as AAG (Node(..), Graph)
+import Data.Hashable (hash)
+import Numeric (showHex)
 
 data Access = Access {
     names :: [String],
@@ -16,8 +18,11 @@ data Node = Node {
 
 type Graph = [Node]
 
+stringToHexColor :: String -> String
+stringToHexColor s = "#" ++ showHex (hash s `mod` 16777216) ""
+
 toAccess :: [AAG.Node] -> Access
-toAccess ns = Access names (concat names)
+toAccess ns = Access names (stringToHexColor (concat names))
     where
         names = map AAG.name ns
 
