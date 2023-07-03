@@ -1,5 +1,5 @@
 import AccountAccessGraph (Node(..), Graph, addNode, addProtectedBy)
-import Mermaid (printMermaidGraph)
+import Graphviz (printGraph)
 
 main :: IO ()
 main = do
@@ -12,4 +12,4 @@ main = do
         updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
         updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
         updatedGraph7 = addProtectedBy "Phone" ["Finger"] updatedGraph6
-    writeFile "graph.mmd" (printMermaidGraph updatedGraph7)
+    writeFile "graph.dot" (printGraph updatedGraph7)

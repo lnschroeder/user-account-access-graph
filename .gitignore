@@ -123,6 +123,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-graph.mmd
+graph.dot
 
 dist-newstyle/
