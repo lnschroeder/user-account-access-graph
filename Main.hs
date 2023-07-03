@@ -24,22 +24,19 @@ addProtectedBy nname nnames g = map (\x -> if name x == nname then updatedNode e
         existingNode = fromJust $ getNode nname g
         updatedNode = Node nname (protectedBy existingNode ++ [accesses])
 
-printMermaidProtectedBy :: [Node] -> String -> String
-printMermaidProtectedBy xs nname = concatMap (\ (Node xname _) -> xname ++ " --> " ++ nname ++ "\n") xs
+printMermaidProtectedBy :: String -> [Node] -> String
+printMermaidProtectedBy nname = concatMap (\ (Node xname _) -> xname ++ " --> " ++ nname ++ "\n")
 
 printMermaidNode :: Node -> String
 printMermaidNode (Node nname xs) = 
     "%% " ++ nname ++ "\n" ++ 
     nname ++ "\n\n" ++ 
-    concatMap (\ x -> printMermaidProtectedBy x nname ++ "\n") xs
+    concatMap (\ x -> printMermaidProtectedBy nname x ++ "\n") xs
 
-printMermaidGraph :: Graph  -> String
-printMermaidGraph = concatMap printMermaidNode
-
-printMermaidContent :: Graph -> String
-printMermaidContent g = 
+printMermaidGraph :: Graph -> String
+printMermaidGraph g = 
     "flowchart TD\n\n" ++ 
-    printMermaidGraph g
+    concatMap printMermaidNode g
 
 main :: IO ()
 main = do
@@ -52,4 +49,4 @@ main = do
         updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
         updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
     print updatedGraph6
-    writeFile "graph.mmd" (printMermaidContent updatedGraph6)
+    writeFile "graph.mmd" (printMermaidGraph updatedGraph6)
