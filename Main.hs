@@ -8,20 +8,20 @@ data Node = Node {
 
 type Graph = [Node]
 
-isNode :: String -> Node -> Bool
-isNode s (Node nname _) = s == nname
+nodeHasName ::Node -> String -> Bool
+nodeHasName (Node nname _) s = s == nname
 
 addNode :: Node -> Graph -> Graph
 addNode n g = g ++ [n]
 
 getNode :: String -> Graph -> Maybe Node
-getNode nname = find (isNode nname)
+getNode nname = find (`nodeHasName` nname)
 
 getNodes ::[String] -> Graph ->  [Node]
 getNodes nnames g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) nnames
 
 addProtectedBy :: String -> [String] -> Graph -> Graph 
-addProtectedBy nname nnames g = map (\x -> if nname `isNode` x then updatedNode else x) g
+addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updatedNode else x) g
     where
         accesses = getNodes nnames g
         existingNode = fromJust $ getNode nname g
