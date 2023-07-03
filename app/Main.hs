@@ -1,39 +1,5 @@
-import Data.List (find)
-import Data.Maybe (isJust, fromJust)
-import AccountAccessGraph (Node(..), Graph)
-
-nodeHasName ::Node -> String -> Bool
-nodeHasName (Node nname _) s = s == nname
-
-addNode :: Node -> Graph -> Graph
-addNode n g = g ++ [n]
-
-getNode :: String -> Graph -> Maybe Node
-getNode nname = find (`nodeHasName` nname)
-
-getNodes ::[String] -> Graph ->  [Node]
-getNodes nnames g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) nnames
-
-addProtectedBy :: String -> [String] -> Graph -> Graph 
-addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updatedNode else x) g
-    where
-        accesses = getNodes nnames g
-        existingNode = fromJust $ getNode nname g
-        updatedNode = Node nname (protectedBy existingNode ++ [accesses])
-
-printMermaidProtectedBy :: String -> [Node] -> String
-printMermaidProtectedBy nname = concatMap (\ (Node xname _) -> xname ++ " --> " ++ nname ++ "\n")
-
-printMermaidNode :: Node -> String
-printMermaidNode (Node nname xs) = 
-    "%% " ++ nname ++ "\n" ++ 
-    nname ++ "\n\n" ++ 
-    concatMap (\ x -> printMermaidProtectedBy nname x ++ "\n") xs
-
-printMermaidGraph :: Graph -> String
-printMermaidGraph g = 
-    "flowchart TD\n\n" ++ 
-    concatMap printMermaidNode g
+import AccountAccessGraph (Node(..), Graph, addNode, addProtectedBy)
+import Mermaid (printMermaidGraph)
 
 main :: IO ()
 main = do
