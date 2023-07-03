@@ -51,5 +51,5 @@ main = do
         updatedGraph4 = addNode Node { name = "Bitwarden", protectedBy = [] } updatedGraph3 
         updatedGraph5 = addProtectedBy "Bitwarden" ["pw_Bitwarden"] updatedGraph4
         updatedGraph6 = addProtectedBy "Bitwarden" ["Finger", "Phone"] updatedGraph5
-    print updatedGraph6
-    writeFile "graph.mmd" (printMermaidGraph updatedGraph6)
+        updatedGraph7 = addProtectedBy "Phone" ["Finger"] updatedGraph6
+    writeFile "graph.mmd" (printMermaidGraph updatedGraph7)
