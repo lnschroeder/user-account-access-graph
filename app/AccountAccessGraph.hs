@@ -18,8 +18,8 @@ type Graph = [Node]
 nodeHasName ::Node -> String -> Bool
 nodeHasName (Node nname _) s = s == nname
 
-addNode :: Node -> Graph -> Graph
-addNode n g = g ++ [n]
+addNode :: String -> Graph -> Graph
+addNode nname g = g ++ [Node nname []]
 
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
