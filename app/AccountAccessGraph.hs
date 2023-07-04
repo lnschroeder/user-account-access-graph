@@ -3,24 +3,29 @@ module AccountAccessGraph (
     Graph,
     addNode,
     addProtectedBy,
-    example
+    example,
+    selectNode,
+    unselectNode,
+    isNodeAccessible
 ) where
 
 import Data.List (find)
 import Data.Maybe (fromJust)
+import qualified Data.Set as Set
 
 data Node = Node {
     name :: String,
-    protectedBy :: [[String]]
+    protectedBy :: [[String]],
+    selected :: Bool
 } deriving (Show, Eq)
 
 type Graph = [Node]
 
 nodeHasName ::Node -> String -> Bool
-nodeHasName (Node nname _) s = s == nname
+nodeHasName (Node nname _ _) s = s == nname
 
 addNode :: String -> Graph -> Graph
-addNode nname g = g ++ [Node nname []]
+addNode nname g = g ++ [Node nname [] False]
 
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
@@ -33,7 +38,30 @@ addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updated
     where
         accesses = getNodes nnames g
         existingNode = fromJust $ getNode nname g
-        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses])
+        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (selected existingNode)
+
+setSelected :: Bool -> String -> Graph -> Graph
+setSelected b nname = map (\x -> if x `nodeHasName` nname then Node (name x) (protectedBy x) b else x)
+
+selectNode :: String -> Graph -> Graph
+selectNode = setSelected True
+
+unselectNode :: String -> Graph -> Graph
+unselectNode = setSelected False
+
+isSubsetOf :: [String] -> [String] -> Bool
+x `isSubsetOf` y = Set.fromList x `Set.isSubsetOf` Set.fromList y  
+
+isNodeAccessible :: String -> Graph -> Bool
+isNodeAccessible nname g = any (`isSubsetOf` selectedNodes) accesses
+    where 
+        accesses = protectedBy (fromJust (getNode nname g))
+        selectedNodes = map name (filter selected g)
+
+-- showCompromised :: Graph -> Graph
+-- showCompromised g = map 
+--     where 
+--         selectedNodes = map name (filter selected g)
 
 example :: Graph
 example = addProtectedBy "OTPApp Recovery" ["USB Stick"] $
