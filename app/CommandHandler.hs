@@ -8,6 +8,29 @@ import Graphviz (printGraph)
 import qualified AccountAccessGraph as AAG
 import System.IO
 
+exampleGraph :: AAG.Graph
+exampleGraph = AAG.addProtectedBy "OTPApp Recovery" ["USB Stick"] $
+    AAG.addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
+    AAG.addProtectedBy "OTPApp" ["Phone", "Finger"] $
+    AAG.addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
+    AAG.addProtectedBy "otp_Posteo" ["OTPApp"] $
+    AAG.addProtectedBy "otp_Posteo" ["YubiKey"] $
+    AAG.addProtectedBy "Bitwarden" ["Finger", "Phone"] $
+    AAG.addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
+    AAG.addProtectedBy "pw_Posteo" ["Bitwarden"] $
+    AAG.addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
+    AAG.addNode "Phone" $
+    AAG.addNode "YubiKey" $
+    AAG.addNode "Finger" $ 
+    AAG.addNode "Posteo" $
+    AAG.addNode "Bitwarden" $
+    AAG.addNode "OTPApp" $
+    AAG.addNode "OTPApp_Recovery" $
+    AAG.addNode "otp_Posteo" $
+    AAG.addNode "pw_Posteo" $
+    AAG.addNode "pw_OTPApp" $
+    AAG.addNode "pw_Bitwarden" []
+            
 extractCommandParameters :: String -> Int -> [String]
 extractCommandParameters cmd l = drop l (splitOn " " cmd)
 
@@ -19,8 +42,20 @@ invoke cmd graph
     | "add access " `isPrefixOf` cmd = do
         let nodes = extractCommandParameters cmd 2 
         ("Added access " ++ show nodes, AAG.addProtectedBy (head nodes) (tail nodes) graph)
+    | "example" `isPrefixOf` cmd = do
+        ("Generated example graph", exampleGraph)
+    | "clear" `isPrefixOf` cmd = do
+        ("Cleared graph", [])
     | "help" `isPrefixOf` cmd = do
-        ("available commands:\n   add node <node name>\n\t - adds a new node to the graph\n   add access <node name> <protector1> <protector2> ...\n\t - adds a list of nodes (protectors) to a given node as access", graph)
+        ("available commands:\n" ++
+            "  add node <node name>\n" ++
+            "    - adds a new node to the graph\n" ++
+            "  add access <node name> <protector1> <protector2> ...\n" ++
+            "    - adds a list of nodes (protectors) to a given node as access\n" ++
+            "  example\n" ++
+            "    - generates an example graph\n" ++
+            "  clear\n" ++
+            "   - reset the graph", graph)
     | otherwise = ("Unknown command", graph)
 
 
