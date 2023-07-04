@@ -8,29 +8,6 @@ import Graphviz (printGraph)
 import qualified AccountAccessGraph as AAG
 import System.IO
 
-exampleGraph :: AAG.Graph
-exampleGraph = AAG.addProtectedBy "OTPApp Recovery" ["USB Stick"] $
-    AAG.addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
-    AAG.addProtectedBy "OTPApp" ["Phone", "Finger"] $
-    AAG.addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
-    AAG.addProtectedBy "otp_Posteo" ["OTPApp"] $
-    AAG.addProtectedBy "otp_Posteo" ["YubiKey"] $
-    AAG.addProtectedBy "Bitwarden" ["Finger", "Phone"] $
-    AAG.addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
-    AAG.addProtectedBy "pw_Posteo" ["Bitwarden"] $
-    AAG.addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
-    AAG.addNode "Phone" $
-    AAG.addNode "YubiKey" $
-    AAG.addNode "Finger" $ 
-    AAG.addNode "Posteo" $
-    AAG.addNode "Bitwarden" $
-    AAG.addNode "OTPApp" $
-    AAG.addNode "OTPApp_Recovery" $
-    AAG.addNode "otp_Posteo" $
-    AAG.addNode "pw_Posteo" $
-    AAG.addNode "pw_OTPApp" $
-    AAG.addNode "pw_Bitwarden" []
-            
 extractCommandParameters :: String -> Int -> [String]
 extractCommandParameters cmd l = drop l (splitOn " " cmd)
 
@@ -43,7 +20,7 @@ invoke cmd graph
         let nodes = extractCommandParameters cmd 2 
         ("Added access " ++ show nodes, AAG.addProtectedBy (head nodes) (tail nodes) graph)
     | "example" `isPrefixOf` cmd = do
-        ("Generated example graph", exampleGraph)
+        ("Generated example graph", AAG.example)
     | "clear" `isPrefixOf` cmd = do
         ("Cleared graph", [])
     | "help" `isPrefixOf` cmd = do
@@ -57,7 +34,6 @@ invoke cmd graph
             "  clear\n" ++
             "   - reset the graph", graph)
     | otherwise = ("Unknown command", graph)
-
 
 commandHandler :: AAG.Graph -> IO ()
 commandHandler g = do
