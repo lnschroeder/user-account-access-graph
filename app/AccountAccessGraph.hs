@@ -4,9 +4,10 @@ module AccountAccessGraph (
     addNode,
     addProtectedBy,
     example,
-    compromiseNode,
+    compromiseNodes,
     resetNode,
-    canBeCompromised
+    canBeCompromised,
+    compromiseAllPossibleNodes
 ) where
 
 import Data.List (find)
@@ -46,6 +47,9 @@ setIsCompromised b nname = map (\x -> if x `nodeHasName` nname then x { isCompro
 compromiseNode :: String -> Graph -> Graph
 compromiseNode = setIsCompromised True
 
+compromiseNodes :: [String] -> Graph -> Graph
+compromiseNodes xs g = foldl (flip compromiseNode) g xs
+
 resetNode :: String -> Graph -> Graph
 resetNode = setIsCompromised False
 
@@ -61,6 +65,15 @@ canBeCompromised nname g
         accesses = protectedBy (fromJust maybeNode)
         selectedNodes = map name (filter isCompromised g)
 
+getCompromisableNodes :: Graph -> [String]
+getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name x `canBeCompromised` g) g)
+
+compromiseAllPossibleNodes :: Graph -> Graph
+compromiseAllPossibleNodes g 
+    | null compromisableNodes = g
+    | otherwise = compromiseAllPossibleNodes (compromiseNodes compromisableNodes g)
+    where 
+        compromisableNodes = getCompromisableNodes g
 -- showCompromised :: Graph -> Graph
 -- showCompromised g = map 
 --     where 
