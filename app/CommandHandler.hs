@@ -13,15 +13,28 @@ extractCommandParameters cmd l = drop l (splitOn " " cmd)
 
 invoke :: String -> AAG.Graph -> (String, AAG.Graph)
 invoke cmd graph
-    | "add node " `isPrefixOf` cmd = do
-        let name = head $ extractCommandParameters cmd 2
-        ("Added node " ++ name, AAG.addNode name graph)
-    | "add access " `isPrefixOf` cmd = do
-        let nodes = extractCommandParameters cmd 2 
-        ("Added access " ++ show nodes, AAG.addProtectedBy (head nodes) (tail nodes) graph)
-    | "compromise " `isPrefixOf` cmd = do
-        let nodes = extractCommandParameters cmd 1 
-        ("Compromised node(s) " ++ show nodes, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User nodes graph))
+    | "add node" == cmd || "add node " `isPrefixOf` cmd = do
+        let args = extractCommandParameters cmd 2
+        if length args == 1 then 
+            let name = head args in
+            ("Added node " ++ name, AAG.addNode name graph)
+        else 
+            ("Add one node at a time and don't use spaces", graph)
+    |  "add access" == cmd || "add access " `isPrefixOf` cmd = do
+        let args = extractCommandParameters cmd 2
+        if length args > 1 then 
+            let name = head args 
+                names = tail args in
+            ("Added access " ++ show names ++ " for node " ++ name, AAG.addProtectedBy name names graph)
+        else 
+            ("Too few arguments provided", graph)
+    | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
+        let args = extractCommandParameters cmd 1 
+        if not (null args) then 
+            let names = args in
+            ("Compromised node(s) " ++ show names, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User names graph))
+        else 
+            ("Too few arguments provided", graph)   
     | "reset" == cmd = do
         ("Graph was resetted", AAG.resetAllNode graph)
     | "example" == cmd = do
