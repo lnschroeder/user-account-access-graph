@@ -25,9 +25,6 @@ invoke cmd graph
     | "reset" == cmd = do
         let nodes = map AAG.name (filter AAG.isCompromised graph)
         ("Graph was resetted", foldl (flip AAG.resetNode) graph nodes)
-    | "canAccess " `isPrefixOf` cmd = do
-        let nodes = extractCommandParameters cmd 1 
-        (if AAG.canBeCompromised (head nodes) graph then "y" else "n", graph)
     | "example" == cmd = do
         ("Generated example graph", AAG.example)
     | "clear" == cmd = do

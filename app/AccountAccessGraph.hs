@@ -6,7 +6,6 @@ module AccountAccessGraph (
     example,
     compromiseNodes,
     resetNode,
-    canBeCompromised,
     compromiseAllPossibleNodes
 ) where
 
