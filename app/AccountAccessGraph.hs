@@ -60,7 +60,14 @@ addProtectedBy nname nnames g
             ++ ". Access was not added!"
         )
         g
-  | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)} else x) g
+  | otherwise =
+      map
+        ( \x ->
+            if x `nodeHasName` nname
+              then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
+              else x
+        )
+        g
   where
     maybeNode = getNode nname g
     maybeNodes = getNodes nnames g
@@ -72,7 +79,13 @@ isCompromised :: Node -> Bool
 isCompromised n = NotCompromised /= compromisionType n
 
 setIsCompromised :: CompromisionType -> String -> Graph -> Graph
-setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x {compromisionType = c} else x)
+setIsCompromised c nname =
+  map
+    ( \x ->
+        if x `nodeHasName` nname
+          then x {compromisionType = c}
+          else x
+    )
 
 compromiseNodes :: CompromisionType -> [String] -> Graph -> Graph
 compromiseNodes c xs g = foldr (setIsCompromised c) g xs
