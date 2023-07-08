@@ -41,7 +41,7 @@ addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updated
     where
         accesses = getNodes nnames g
         existingNode = fromJust $ getNode nname g
-        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (compromisionType existingNode)
+        updatedNode = existingNode {protectedBy = protectedBy existingNode ++ [map name accesses]}
 
 getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames g = map name (filter isCompromised g)
