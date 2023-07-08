@@ -1,5 +1,5 @@
 import AccountAccessGraph (Node(..), Graph, addNode, addProtectedBy)
-import CommandHandler
+import CommandHandler ( commandHandler )
 
 main :: IO ()
 main = do

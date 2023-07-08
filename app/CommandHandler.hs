@@ -6,7 +6,7 @@ import Data.List (isPrefixOf)
 import Data.List.Split (splitOn)
 import Graphviz (printGraph)
 import qualified AccountAccessGraph as AAG
-import System.IO
+import System.IO ( hFlush, stdout )
 
 extractCommandParameters :: String -> Int -> [String]
 extractCommandParameters cmd l = drop l (splitOn " " cmd)
