@@ -28,13 +28,13 @@ toProtectedBy :: Set.Set (Set.Set String) -> [Access]
 toProtectedBy p = zipWith (Access . Set.toList) (Set.toList p) [1 ..]
 
 toCompromisionType :: AAG.CompromisionType -> CompromisionType
-toCompromisionType AAG.Automatic = Automatic
-toCompromisionType AAG.User = User
-toCompromisionType AAG.NotCompromised = NotCompromised
+toCompromisionType ct = case ct of
+  AAG.Automatic -> Automatic
+  AAG.User -> User
+  AAG.NotCompromised -> NotCompromised
 
 toNode :: AAG.Node -> Node
-toNode n =
-  Node (AAG.name n) (toProtectedBy (AAG.protectedBy n)) (toCompromisionType (AAG.compromisionType n))
+toNode n = Node (AAG.name n) (toProtectedBy (AAG.protectedBy n)) (toCompromisionType (AAG.compromisionType n))
 
 toGraph :: AAG.Graph -> Graph
 toGraph = map toNode
