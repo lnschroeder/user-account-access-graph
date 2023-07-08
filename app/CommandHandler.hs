@@ -27,21 +27,37 @@ invoke cmd graph
         then
           let name = head args
               names = tail args
-           in ("Added access " ++ show names ++ " for node " ++ name, AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph)
-        else ("Too few arguments provided", graph)
+           in ( "Added access " ++ show names ++ " for node " ++ name,
+                AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
+              )
+        else
+          ( "Too few arguments provided",
+            graph
+          )
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
       let args = extractCommandParameters cmd 1
       if not (null args)
         then
           let names = args
-           in ("Compromised node(s) " ++ show names, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User names graph))
-        else ("Too few arguments provided", graph)
+           in ( "Compromised node(s) " ++ show names,
+                AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
+              )
+        else
+          ( "Too few arguments provided",
+            graph
+          )
   | "reset" == cmd = do
-      ("Graph was resetted", AAG.resetAllNode graph)
+      ( "Graph was resetted",
+        AAG.resetAllNode graph
+        )
   | "example" == cmd = do
-      ("Generated example graph", AAG.example)
+      ( "Generated example graph",
+        AAG.example
+        )
   | "clear" == cmd = do
-      ("Cleared graph", [])
+      ( "Cleared graph",
+        []
+        )
   | "help" == cmd = do
       ( "available commands:\n"
           ++ "  add node <node name>\n"
@@ -58,7 +74,10 @@ invoke cmd graph
           ++ "   - reset the graph",
         graph
         )
-  | otherwise = ("Unknown command", graph)
+  | otherwise =
+      ( "Unknown command",
+        graph
+      )
 
 commandHandler :: AAG.Graph -> IO ()
 commandHandler g = do
