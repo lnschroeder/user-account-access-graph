@@ -32,9 +32,10 @@ executable UserAccountAccessGraph
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
   build-depends:
-    , base        ^>=4.16.4.0
-    , containers  ^>=0.6.7
-    , split       ^>=0.2.3.5
+    , base                ^>=4.16.4.0
+    , containers          ^>=0.6.7
+    , split               ^>=0.2.3.5
+    , text-format-simple  ^>=1.1.0
 
   hs-source-dirs:   app
   default-language: Haskell2010

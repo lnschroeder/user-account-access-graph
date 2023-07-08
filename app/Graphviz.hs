@@ -4,6 +4,7 @@ module Graphviz
 where
 
 import qualified AccountAccessGraph as AAG (CompromisionType (..), Graph, Node (..))
+import Text.Format (format)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
 
@@ -37,7 +38,14 @@ toGraph :: AAG.Graph -> Graph
 toGraph = map toNode
 
 printAccess :: String -> Access -> String
-printAccess nname (Access ns color) = concatMap (\n -> "\t" ++ n ++ " -> " ++ nname ++ " [color = \"" ++ show color ++ "\";];\n") ns
+printAccess nname (Access ns color) =
+  concatMap
+    ( \n ->
+        format
+          "\t{0} -> {1} [color = \"{2}\";];\n"
+          [n, nname, show color]
+    )
+    ns
 
 printCompromisionType :: CompromisionType -> String
 printCompromisionType Automatic = "dotted"
@@ -46,16 +54,16 @@ printCompromisionType NotCompromised = "solid"
 
 printNode :: Node -> String
 printNode (Node nname xs compromisionType) =
-  "\t# "
-    ++ nname
-    ++ "\n"
-    ++ "\t"
-    ++ nname
-    ++ " [style = \""
-    ++ printCompromisionType compromisionType
-    ++ "\";];"
-    ++ "\n\n"
-    ++ concatMap (\x -> printAccess nname x ++ "\n") xs
+  format
+    ( "\t# {0}\n"
+        ++ "\t{1} [style = \"{2}\";];\n\n"
+        ++ "{3}"
+    )
+    [ nname,
+      nname,
+      printCompromisionType compromisionType,
+      concatMap (\x -> printAccess nname x ++ "\n") xs
+    ]
 
 printGraph :: AAG.Graph -> String
 printGraph g =
