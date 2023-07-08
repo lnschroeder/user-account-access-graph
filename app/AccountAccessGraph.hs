@@ -4,9 +4,9 @@ module AccountAccessGraph (
     addNode,
     addProtectedBy,
     example,
-    selectNode,
-    unselectNode,
-    isNodeAccessible
+    compromiseNode,
+    resetNode,
+    canBeCompromised
 ) where
 
 import Data.List (find)
@@ -16,7 +16,7 @@ import qualified Data.Set as Set
 data Node = Node {
     name :: String,
     protectedBy :: [[String]],
-    selected :: Bool
+    isCompromised :: Bool
 } deriving (Show, Eq)
 
 type Graph = [Node]
@@ -38,25 +38,25 @@ addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updated
     where
         accesses = getNodes nnames g
         existingNode = fromJust $ getNode nname g
-        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (selected existingNode)
+        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (isCompromised existingNode)
 
-setSelected :: Bool -> String -> Graph -> Graph
-setSelected b nname = map (\x -> if x `nodeHasName` nname then Node (name x) (protectedBy x) b else x)
+setIsCompromised :: Bool -> String -> Graph -> Graph
+setIsCompromised b nname = map (\x -> if x `nodeHasName` nname then x { isCompromised = b } else x)
 
-selectNode :: String -> Graph -> Graph
-selectNode = setSelected True
+compromiseNode :: String -> Graph -> Graph
+compromiseNode = setIsCompromised True
 
-unselectNode :: String -> Graph -> Graph
-unselectNode = setSelected False
+resetNode :: String -> Graph -> Graph
+resetNode = setIsCompromised False
 
 isSubsetOf :: [String] -> [String] -> Bool
 x `isSubsetOf` y = Set.fromList x `Set.isSubsetOf` Set.fromList y  
 
-isNodeAccessible :: String -> Graph -> Bool
-isNodeAccessible nname g = any (`isSubsetOf` selectedNodes) accesses
+canBeCompromised :: String -> Graph -> Bool
+canBeCompromised nname g = any (`isSubsetOf` selectedNodes) accesses
     where 
         accesses = protectedBy (fromJust (getNode nname g))
-        selectedNodes = map name (filter selected g)
+        selectedNodes = map name (filter isCompromised g)
 
 -- showCompromised :: Graph -> Graph
 -- showCompromised g = map 

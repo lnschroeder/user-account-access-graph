@@ -19,18 +19,15 @@ invoke cmd graph
     | "add access " `isPrefixOf` cmd = do
         let nodes = extractCommandParameters cmd 2 
         ("Added access " ++ show nodes, AAG.addProtectedBy (head nodes) (tail nodes) graph)
-    | "select " `isPrefixOf` cmd = do
+    | "compromise " `isPrefixOf` cmd = do
         let nodes = extractCommandParameters cmd 1 
-        ("Selected node(s) " ++ show nodes, foldl (flip AAG.selectNode) graph nodes)
-    | "unselect" == cmd = do
-        let nodes = map AAG.name (filter AAG.selected graph)
-        ("Unselected node(s) " ++ show nodes, foldl (flip AAG.unselectNode) graph nodes)
-    | "unselect " `isPrefixOf` cmd = do
-        let nodes = extractCommandParameters cmd 1 
-        ("Unselected all nodes", foldl (flip AAG.unselectNode) graph nodes)
+        ("Selected node(s) " ++ show nodes, foldl (flip AAG.compromiseNode) graph nodes)
+    | "reset" == cmd = do
+        let nodes = map AAG.name (filter AAG.isCompromised graph)
+        ("Graph was resetted", foldl (flip AAG.resetNode) graph nodes)
     | "canAccess " `isPrefixOf` cmd = do
         let nodes = extractCommandParameters cmd 1 
-        (if AAG.isNodeAccessible (head nodes) graph then "y" else "n", graph)
+        (if AAG.canBeCompromised (head nodes) graph then "y" else "n", graph)
     | "example" == cmd = do
         ("Generated example graph", AAG.example)
     | "clear" == cmd = do
@@ -41,11 +38,10 @@ invoke cmd graph
             "    - adds a new node to the graph\n" ++
             "  add access <node name> <protector1> <protector2> ...\n" ++
             "    - adds a list of nodes (protectors) to a given node as access\n" ++
-            "  select <node name 1> <node name 2> ...\n" ++
+            "  compromise <node name 1> <node name 2> ...\n" ++
             "    - selects the given nodes\n" ++
-            "  unselect [<node name 1> <node name 2> ...]\n" ++
-            "    - unselects the given nodes\n" ++
-            "    - or unselects all nodes if none were specified\n" ++
+            "  reset\n" ++
+            "    - Resets graph i.e. show all nodes as not compromised\n" ++
             "  example\n" ++
             "    - generates an example graph\n" ++
             "  clear\n" ++

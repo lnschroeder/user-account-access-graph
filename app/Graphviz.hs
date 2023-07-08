@@ -21,7 +21,7 @@ toAccess :: ([String], Int) -> Access
 toAccess (ns, colors) = Access ns colors
 
 toNode :: AAG.Node -> Node
-toNode n = Node (AAG.name n) (zipWith (curry toAccess) (AAG.protectedBy n) [1 .. ]) (AAG.selected n)  
+toNode n = Node (AAG.name n) (zipWith (curry toAccess) (AAG.protectedBy n) [1 .. ]) (AAG.isCompromised n)  
 
 toGraph :: AAG.Graph -> Graph
 toGraph = map toNode
