@@ -1,31 +1,33 @@
-module AccountAccessGraph (
-    CompromisionType(..),
-    Node(..),
+module AccountAccessGraph
+  ( CompromisionType (..),
+    Node (..),
     Graph,
     addNode,
     addProtectedBy,
     example,
     compromiseNodes,
     resetAllNode,
-    compromiseAllPossibleNodes
-) where
+    compromiseAllPossibleNodes,
+  )
+where
 
-import Debug.Trace (trace)
 import Data.List (find)
 import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
+import Debug.Trace (trace)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
 
-data Node = Node {
-    name :: String,
+data Node = Node
+  { name :: String,
     protectedBy :: [[String]],
     compromisionType :: CompromisionType
-} deriving (Show, Eq)
+  }
+  deriving (Show, Eq)
 
 type Graph = [Node]
 
-nodeHasName ::Node -> String -> Bool
+nodeHasName :: Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
 
 addNode :: String -> Graph -> Graph
@@ -37,14 +39,14 @@ getNode nname = find (`nodeHasName` nname)
 getNodes :: [String] -> Graph -> [Maybe Node]
 getNodes nnames g = map (`getNode` g) nnames
 
-addProtectedBy :: String -> [String] -> Graph -> Graph 
-addProtectedBy nname nnames g 
-    | isNothing maybeNode = trace ("Node with name " ++ nname ++ " does not exist") g
-    | any isNothing maybeNodes = trace ("Node with name " ++ head nnames ++ " does not exist") g
-    | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = protectedBy x ++ [nnames]} else x) g
-    where
-        maybeNode = getNode nname g
-        maybeNodes = getNodes nnames g
+addProtectedBy :: String -> [String] -> Graph -> Graph
+addProtectedBy nname nnames g
+  | isNothing maybeNode = trace ("Node with name " ++ nname ++ " does not exist") g
+  | any isNothing maybeNodes = trace ("Node with name " ++ head nnames ++ " does not exist") g
+  | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = protectedBy x ++ [nnames]} else x) g
+  where
+    maybeNode = getNode nname g
+    maybeNodes = getNodes nnames g
 
 getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames g = map name (filter isCompromised g)
@@ -53,7 +55,7 @@ isCompromised :: Node -> Bool
 isCompromised n = NotCompromised /= compromisionType n
 
 setIsCompromised :: CompromisionType -> String -> Graph -> Graph
-setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x { compromisionType = c } else x)
+setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x {compromisionType = c} else x)
 
 compromiseNodes :: CompromisionType -> [String] -> Graph -> Graph
 compromiseNodes c xs g = foldl (flip (setIsCompromised c)) g xs
@@ -65,48 +67,48 @@ resetAllNode :: Graph -> Graph
 resetAllNode g = foldl (flip resetNode) g (getAllCompromisedNodeNames g)
 
 isSubsetOf :: [String] -> [String] -> Bool
-x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)  
+x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)
 
 canBeCompromised :: String -> Graph -> Bool
-canBeCompromised nname g 
-    | isNothing maybeNode = False
-    | otherwise = any (`isSubsetOf` selectedNodes) accesses
-    where 
-        maybeNode = getNode nname g
-        accesses = protectedBy (fromJust maybeNode)
-        selectedNodes = getAllCompromisedNodeNames g
+canBeCompromised nname g
+  | isNothing maybeNode = False
+  | otherwise = any (`isSubsetOf` selectedNodes) accesses
+  where
+    maybeNode = getNode nname g
+    accesses = protectedBy (fromJust maybeNode)
+    selectedNodes = getAllCompromisedNodeNames g
 
 getCompromisableNodes :: Graph -> [String]
 getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name x `canBeCompromised` g) g)
 
 compromiseAllPossibleNodes :: Graph -> Graph
-compromiseAllPossibleNodes g 
-    | null compromisableNodes = g
-    | otherwise = compromiseAllPossibleNodes (compromiseNodes Automatic compromisableNodes g)
-    where 
-        compromisableNodes = getCompromisableNodes g
+compromiseAllPossibleNodes g
+  | null compromisableNodes = g
+  | otherwise = compromiseAllPossibleNodes (compromiseNodes Automatic compromisableNodes g)
+  where
+    compromisableNodes = getCompromisableNodes g
 
 example :: Graph
-example = 
-    addProtectedBy "OTPApp_Recovery" ["USB_Stick"] $
+example =
+  addProtectedBy "OTPApp_Recovery" ["USB_Stick"] $
     addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
-    addProtectedBy "OTPApp" ["Phone", "Finger"] $
-    addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
-    addProtectedBy "otp_Posteo" ["OTPApp"] $
-    addProtectedBy "otp_Posteo" ["YubiKey"] $
-    addProtectedBy "Bitwarden" ["Finger", "Phone"] $
-    addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
-    addProtectedBy "pw_Posteo" ["Bitwarden"] $
-    addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
-    addNode "USB_Stick" $
-    addNode "Phone" $
-    addNode "YubiKey" $
-    addNode "Finger" $ 
-    addNode "Posteo" $
-    addNode "Bitwarden" $
-    addNode "OTPApp" $
-    addNode "OTPApp_Recovery" $
-    addNode "otp_Posteo" $
-    addNode "pw_Posteo" $
-    addNode "pw_OTPApp" $
-    addNode "pw_Bitwarden" []
+      addProtectedBy "OTPApp" ["Phone", "Finger"] $
+        addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
+          addProtectedBy "otp_Posteo" ["OTPApp"] $
+            addProtectedBy "otp_Posteo" ["YubiKey"] $
+              addProtectedBy "Bitwarden" ["Finger", "Phone"] $
+                addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
+                  addProtectedBy "pw_Posteo" ["Bitwarden"] $
+                    addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
+                      addNode "USB_Stick" $
+                        addNode "Phone" $
+                          addNode "YubiKey" $
+                            addNode "Finger" $
+                              addNode "Posteo" $
+                                addNode "Bitwarden" $
+                                  addNode "OTPApp" $
+                                    addNode "OTPApp_Recovery" $
+                                      addNode "otp_Posteo" $
+                                        addNode "pw_Posteo" $
+                                          addNode "pw_OTPApp" $
+                                            addNode "pw_Bitwarden" []

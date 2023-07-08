@@ -1,72 +1,71 @@
-module CommandHandler (
-    commandHandler
-) where
-    
+module CommandHandler
+  ( commandHandler,
+  )
+where
+
+import qualified AccountAccessGraph as AAG
 import Data.List (isPrefixOf)
 import Data.List.Split (splitOn)
 import Graphviz (printGraph)
-import qualified AccountAccessGraph as AAG
-import System.IO ( hFlush, stdout )
+import System.IO (hFlush, stdout)
 
 extractCommandParameters :: String -> Int -> [String]
 extractCommandParameters cmd l = drop l (splitOn " " cmd)
 
 invoke :: String -> AAG.Graph -> (String, AAG.Graph)
 invoke cmd graph
-    | "add node" == cmd || "add node " `isPrefixOf` cmd = do
-        let args = extractCommandParameters cmd 2
-        if length args == 1 then 
-            let name = head args in
-            ("Added node " ++ name, AAG.addNode name graph)
-        else 
-            ("Add one node at a time and don't use spaces", graph)
-    |  "add access" == cmd || "add access " `isPrefixOf` cmd = do
-        let args = extractCommandParameters cmd 2
-        if length args > 1 then 
-            let name = head args 
-                names = tail args in
-            ("Added access " ++ show names ++ " for node " ++ name, AAG.addProtectedBy name names graph)
-        else 
-            ("Too few arguments provided", graph)
-    | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
-        let args = extractCommandParameters cmd 1 
-        if not (null args) then 
-            let names = args in
-            ("Compromised node(s) " ++ show names, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User names graph))
-        else 
-            ("Too few arguments provided", graph)   
-    | "reset" == cmd = do
-        ("Graph was resetted", AAG.resetAllNode graph)
-    | "example" == cmd = do
-        ("Generated example graph", AAG.example)
-    | "clear" == cmd = do
-        ("Cleared graph", [])
-    | "help" == cmd = do
-        ("available commands:\n" ++
-            "  add node <node name>\n" ++
-            "    - adds a new node to the graph\n" ++
-            "  add access <node name> <protector1> <protector2> ...\n" ++
-            "    - adds a list of nodes (protectors) to a given node as access\n" ++
-            "  compromise <node name 1> <node name 2> ...\n" ++
-            "    - compromises the given nodes\n" ++
-            "  reset\n" ++
-            "    - Resets graph i.e. show all nodes as not compromised\n" ++
-            "  example\n" ++
-            "    - generates an example graph\n" ++
-            "  clear\n" ++
-            "   - reset the graph", graph)
-    | otherwise = ("Unknown command", graph)
+  | "add node" == cmd || "add node " `isPrefixOf` cmd = do
+      let args = extractCommandParameters cmd 2
+      if length args == 1
+        then
+          let name = head args
+           in ("Added node " ++ name, AAG.addNode name graph)
+        else ("Add one node at a time and don't use spaces", graph)
+  | "add access" == cmd || "add access " `isPrefixOf` cmd = do
+      let args = extractCommandParameters cmd 2
+      if length args > 1
+        then
+          let name = head args
+              names = tail args
+           in ("Added access " ++ show names ++ " for node " ++ name, AAG.addProtectedBy name names graph)
+        else ("Too few arguments provided", graph)
+  | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
+      let args = extractCommandParameters cmd 1
+      if not (null args)
+        then
+          let names = args
+           in ("Compromised node(s) " ++ show names, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User names graph))
+        else ("Too few arguments provided", graph)
+  | "reset" == cmd = do
+      ("Graph was resetted", AAG.resetAllNode graph)
+  | "example" == cmd = do
+      ("Generated example graph", AAG.example)
+  | "clear" == cmd = do
+      ("Cleared graph", [])
+  | "help" == cmd = do
+      ( "available commands:\n"
+          ++ "  add node <node name>\n"
+          ++ "    - adds a new node to the graph\n"
+          ++ "  add access <node name> <protector1> <protector2> ...\n"
+          ++ "    - adds a list of nodes (protectors) to a given node as access\n"
+          ++ "  compromise <node name 1> <node name 2> ...\n"
+          ++ "    - compromises the given nodes\n"
+          ++ "  reset\n"
+          ++ "    - Resets graph i.e. show all nodes as not compromised\n"
+          ++ "  example\n"
+          ++ "    - generates an example graph\n"
+          ++ "  clear\n"
+          ++ "   - reset the graph",
+        graph
+        )
+  | otherwise = ("Unknown command", graph)
 
 commandHandler :: AAG.Graph -> IO ()
 commandHandler g = do
-    putStr "> "
-    hFlush stdout
-    name <- getLine
-    let (message, graph) = invoke name g
-    writeFile "graph.dot" (printGraph graph)
-    putStrLn message
-    commandHandler graph
-
-
-
-    
+  putStr "> "
+  hFlush stdout
+  name <- getLine
+  let (message, graph) = invoke name g
+  writeFile "graph.dot" (printGraph graph)
+  putStrLn message
+  commandHandler graph
