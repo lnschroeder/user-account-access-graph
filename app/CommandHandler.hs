@@ -21,7 +21,7 @@ invoke cmd graph
         ("Added access " ++ show nodes, AAG.addProtectedBy (head nodes) (tail nodes) graph)
     | "compromise " `isPrefixOf` cmd = do
         let nodes = extractCommandParameters cmd 1 
-        ("Selected node(s) " ++ show nodes, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes nodes graph))
+        ("Compromised node(s) " ++ show nodes, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes nodes graph))
     | "reset" == cmd = do
         let nodes = map AAG.name (filter AAG.isCompromised graph)
         ("Graph was resetted", foldl (flip AAG.resetNode) graph nodes)

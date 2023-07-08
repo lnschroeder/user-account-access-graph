@@ -73,10 +73,6 @@ compromiseAllPossibleNodes g
     | otherwise = compromiseAllPossibleNodes (compromiseNodes compromisableNodes g)
     where 
         compromisableNodes = getCompromisableNodes g
--- showCompromised :: Graph -> Graph
--- showCompromised g = map 
---     where 
---         selectedNodes = map name (filter selected g)
 
 example :: Graph
 example = addProtectedBy "OTPApp Recovery" ["USB Stick"] $
