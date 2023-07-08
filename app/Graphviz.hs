@@ -37,7 +37,7 @@ toGraph :: AAG.Graph -> Graph
 toGraph = map toNode
 
 printAccess :: String -> Access -> String
-printAccess nname (Access ns color) = concatMap (\n -> "\t" ++ n ++ " -> " ++ nname ++ " [color=\"" ++ show color ++ "\"]" ++ "\n") ns
+printAccess nname (Access ns color) = concatMap (\n -> "\t" ++ n ++ " -> " ++ nname ++ " [color = \"" ++ show color ++ "\";];\n") ns
 
 printCompromisionType :: CompromisionType -> String
 printCompromisionType Automatic = "dotted"
@@ -51,15 +51,15 @@ printNode (Node nname xs compromisionType) =
     ++ "\n"
     ++ "\t"
     ++ nname
-    ++ "[style=\""
+    ++ " [style = \""
     ++ printCompromisionType compromisionType
-    ++ "\"]"
+    ++ "\";];"
     ++ "\n\n"
     ++ concatMap (\x -> printAccess nname x ++ "\n") xs
 
 printGraph :: AAG.Graph -> String
 printGraph g =
   "digraph {\n"
-    ++ "\tedge [colorscheme=\"dark28\"]\n\n"
+    ++ "\tedge [colorscheme = \"dark28\";];\n\n"
     ++ concatMap printNode (toGraph g)
     ++ "}"
