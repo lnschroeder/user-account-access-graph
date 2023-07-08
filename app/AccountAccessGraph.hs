@@ -66,7 +66,7 @@ addProtectedBy nname nnames g
     maybeNodes = getNodes nnames g
 
 getAllCompromisedNodeNames :: Graph -> [String]
-getAllCompromisedNodeNames g = map name (filter isCompromised g)
+getAllCompromisedNodeNames = map name . filter isCompromised
 
 isCompromised :: Node -> Bool
 isCompromised n = NotCompromised /= compromisionType n
@@ -89,7 +89,7 @@ canBeCompromised nname g
   | otherwise = any (`Set.isSubsetOf` Set.fromList selectedNodes) accesses
   where
     maybeNode = getNode nname g
-    accesses = protectedBy (fromJust maybeNode)
+    accesses = protectedBy $ fromJust maybeNode
     selectedNodes = getAllCompromisedNodeNames g
 
 getCompromisableNodes :: Graph -> [String]
@@ -98,7 +98,7 @@ getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name 
 compromiseAllPossibleNodes :: Graph -> Graph
 compromiseAllPossibleNodes g
   | null compromisableNodes = g
-  | otherwise = compromiseAllPossibleNodes (compromiseNodes Automatic compromisableNodes g)
+  | otherwise = compromiseAllPossibleNodes $ compromiseNodes Automatic compromisableNodes g
   where
     compromisableNodes = getCompromisableNodes g
 
