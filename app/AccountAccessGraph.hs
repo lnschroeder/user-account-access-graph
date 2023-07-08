@@ -1,4 +1,5 @@
 module AccountAccessGraph (
+    CompromisionType(..),
     Node(..),
     Graph,
     addNode,
@@ -6,6 +7,7 @@ module AccountAccessGraph (
     example,
     compromiseNodes,
     resetNode,
+    isCompromised,
     compromiseAllPossibleNodes
 ) where
 
@@ -13,19 +15,24 @@ import Data.List (find)
 import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
 
+data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
+
 data Node = Node {
     name :: String,
     protectedBy :: [[String]],
-    isCompromised :: Bool
+    compromisionType :: CompromisionType
 } deriving (Show, Eq)
 
 type Graph = [Node]
+
+isCompromised :: Node -> Bool
+isCompromised n = NotCompromised /= compromisionType n
 
 nodeHasName ::Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
 
 addNode :: String -> Graph -> Graph
-addNode nname g = g ++ [Node nname [] False]
+addNode nname g = g ++ [Node nname [] NotCompromised]
 
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
@@ -38,19 +45,16 @@ addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updated
     where
         accesses = getNodes nnames g
         existingNode = fromJust $ getNode nname g
-        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (isCompromised existingNode)
+        updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (compromisionType existingNode)
 
-setIsCompromised :: Bool -> String -> Graph -> Graph
-setIsCompromised b nname = map (\x -> if x `nodeHasName` nname then x { isCompromised = b } else x)
+setIsCompromised :: CompromisionType -> String -> Graph -> Graph
+setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x { compromisionType = c } else x)
 
-compromiseNode :: String -> Graph -> Graph
-compromiseNode = setIsCompromised True
-
-compromiseNodes :: [String] -> Graph -> Graph
-compromiseNodes xs g = foldl (flip compromiseNode) g xs
+compromiseNodes :: CompromisionType -> [String] -> Graph -> Graph
+compromiseNodes c xs g = foldl (flip (setIsCompromised c)) g xs
 
 resetNode :: String -> Graph -> Graph
-resetNode = setIsCompromised False
+resetNode = setIsCompromised NotCompromised
 
 isSubsetOf :: [String] -> [String] -> Bool
 x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)  
@@ -70,7 +74,7 @@ getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name 
 compromiseAllPossibleNodes :: Graph -> Graph
 compromiseAllPossibleNodes g 
     | null compromisableNodes = g
-    | otherwise = compromiseAllPossibleNodes (compromiseNodes compromisableNodes g)
+    | otherwise = compromiseAllPossibleNodes (compromiseNodes Automatic compromisableNodes g)
     where 
         compromisableNodes = getCompromisableNodes g
 

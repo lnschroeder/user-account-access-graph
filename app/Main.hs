@@ -5,4 +5,3 @@ main :: IO ()
 main = do
     putStrLn "Welcome to your account access graph. Use help for a list of commands."
     CommandHandler.commandHandler []
-
