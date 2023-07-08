@@ -1,10 +1,10 @@
 module CommandHandler
-  ( commandHandler,
+  ( queryOutputFile,
   )
 where
 
 import qualified AccountAccessGraph as AAG
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Graphviz (printGraph)
 import System.IO (hFlush, stdout)
@@ -79,12 +79,24 @@ invoke cmd graph
         graph
       )
 
-commandHandler :: AAG.Graph -> IO ()
-commandHandler g = do
+commandHandler :: String -> AAG.Graph -> IO ()
+commandHandler path g = do
+  writeFile path (printGraph g)
   putStr "> "
   hFlush stdout
   name <- getLine
   let (message, graph) = invoke name g
-  writeFile "graph.dot" (printGraph graph)
   putStrLn message
-  commandHandler graph
+  commandHandler path graph
+
+queryOutputFile :: IO ()
+queryOutputFile = do
+  putStr "Enter output file path: "
+  hFlush stdout
+  input <- getLine
+  if ".dot" `isSuffixOf` input
+    then do
+      commandHandler input []
+    else do
+      putStrLn "File path must end with .dot"
+      queryOutputFile
