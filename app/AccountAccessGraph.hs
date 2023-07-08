@@ -93,7 +93,7 @@ canBeCompromised nname g
     selectedNodes = getAllCompromisedNodeNames g
 
 getCompromisableNodes :: Graph -> [String]
-getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name x `canBeCompromised` g) g)
+getCompromisableNodes g = [name x | x <- g, not (isCompromised x) && name x `canBeCompromised` g]
 
 compromiseAllPossibleNodes :: Graph -> Graph
 compromiseAllPossibleNodes g
