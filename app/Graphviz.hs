@@ -4,6 +4,7 @@ module Graphviz
 where
 
 import qualified AccountAccessGraph as AAG (CompromisionType (..), Graph, Node (..))
+import qualified Data.Set as Set
 import Text.Printf (printf)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
@@ -23,16 +24,17 @@ data Node = Node
 
 type Graph = [Node]
 
+toProtectedBy :: Set.Set (Set.Set String) -> [Access]
+toProtectedBy p = zipWith (Access . Set.toList) (Set.toList p) [1 ..]
+
 toCompromisionType :: AAG.CompromisionType -> CompromisionType
 toCompromisionType AAG.Automatic = Automatic
 toCompromisionType AAG.User = User
 toCompromisionType AAG.NotCompromised = NotCompromised
 
-toAccess :: ([String], Int) -> Access
-toAccess (ns, colors) = Access ns colors
-
 toNode :: AAG.Node -> Node
-toNode n = Node (AAG.name n) (zipWith (curry toAccess) (AAG.protectedBy n) [1 ..]) (toCompromisionType (AAG.compromisionType n))
+toNode n =
+  Node (AAG.name n) (toProtectedBy (AAG.protectedBy n)) (toCompromisionType (AAG.compromisionType n))
 
 toGraph :: AAG.Graph -> Graph
 toGraph = map toNode

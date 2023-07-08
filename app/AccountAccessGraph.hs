@@ -20,7 +20,7 @@ data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
 
 data Node = Node
   { name :: String,
-    protectedBy :: [[String]],
+    protectedBy :: Set.Set (Set.Set String),
     compromisionType :: CompromisionType
   }
   deriving (Show, Eq)
@@ -31,7 +31,7 @@ nodeHasName :: Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
 
 addNode :: String -> Graph -> Graph
-addNode nname g = g ++ [Node nname [] NotCompromised]
+addNode nname g = g ++ [Node nname Set.empty NotCompromised]
 
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
@@ -51,7 +51,7 @@ addProtectedBy nname nnames g
         ( "\ESC[33mNode with name " ++ head nnames ++ " does not exist. Access was not added!"
         )
         g
-  | any (\x -> Set.fromList nnames == Set.fromList x) (protectedBy (fromJust maybeNode)) =
+  | any (\x -> Set.fromList nnames == x) (protectedBy (fromJust maybeNode)) =
       trace
         ( "\ESC[33mAccess already exists "
             ++ show nnames
@@ -60,7 +60,7 @@ addProtectedBy nname nnames g
             ++ ". Access was not added!"
         )
         g
-  | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = protectedBy x ++ [nnames]} else x) g
+  | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)} else x) g
   where
     maybeNode = getNode nname g
     maybeNodes = getNodes nnames g
@@ -83,13 +83,10 @@ resetNode = setIsCompromised NotCompromised
 resetAllNode :: Graph -> Graph
 resetAllNode g = foldl (flip resetNode) g (getAllCompromisedNodeNames g)
 
-isSubsetOf :: [String] -> [String] -> Bool
-x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)
-
 canBeCompromised :: String -> Graph -> Bool
 canBeCompromised nname g
   | isNothing maybeNode = False
-  | otherwise = any (`isSubsetOf` selectedNodes) accesses
+  | otherwise = any (`Set.isSubsetOf` Set.fromList selectedNodes) accesses
   where
     maybeNode = getNode nname g
     accesses = protectedBy (fromJust maybeNode)
