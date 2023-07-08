@@ -10,7 +10,7 @@ import Graphviz (printGraph)
 import System.IO (hFlush, stdout)
 
 extractCommandParameters :: String -> Int -> [String]
-extractCommandParameters cmd l = drop l (splitOn " " cmd)
+extractCommandParameters cmd l = drop l (words cmd)
 
 invoke :: String -> AAG.Graph -> (String, AAG.Graph)
 invoke cmd graph
@@ -84,8 +84,8 @@ commandHandler path g = do
   writeFile path (printGraph g)
   putStr "\ESC[32m> "
   hFlush stdout
-  name <- getLine
-  let (message, graph) = invoke name g
+  cmd <- getLine
+  let (message, graph) = invoke cmd g
   putStrLn message
   commandHandler path graph
 
