@@ -50,8 +50,8 @@ printAccess nname (Access ns color) =
     ns
 
 printCompromisionType :: CompromisionType -> String
-printCompromisionType Automatic = "dotted"
-printCompromisionType User = "dashed"
+printCompromisionType Automatic = "dashed,bold"
+printCompromisionType User = "bold"
 printCompromisionType NotCompromised = "solid"
 
 printNode :: Node -> String
