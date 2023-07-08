@@ -10,7 +10,7 @@ module AccountAccessGraph (
 ) where
 
 import Data.List (find)
-import Data.Maybe (fromJust)
+import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
 
 data Node = Node {
@@ -50,12 +50,15 @@ resetNode :: String -> Graph -> Graph
 resetNode = setIsCompromised False
 
 isSubsetOf :: [String] -> [String] -> Bool
-x `isSubsetOf` y = Set.fromList x `Set.isSubsetOf` Set.fromList y  
+x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)  
 
 canBeCompromised :: String -> Graph -> Bool
-canBeCompromised nname g = any (`isSubsetOf` selectedNodes) accesses
+canBeCompromised nname g 
+    | isNothing maybeNode = False
+    | otherwise = any (`isSubsetOf` selectedNodes) accesses
     where 
-        accesses = protectedBy (fromJust (getNode nname g))
+        maybeNode = getNode nname g
+        accesses = protectedBy (fromJust maybeNode)
         selectedNodes = map name (filter isCompromised g)
 
 -- showCompromised :: Graph -> Graph
