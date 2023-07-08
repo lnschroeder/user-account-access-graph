@@ -6,8 +6,7 @@ module AccountAccessGraph (
     addProtectedBy,
     example,
     compromiseNodes,
-    resetNode,
-    isCompromised,
+    resetAllNode,
     compromiseAllPossibleNodes
 ) where
 
@@ -24,9 +23,6 @@ data Node = Node {
 } deriving (Show, Eq)
 
 type Graph = [Node]
-
-isCompromised :: Node -> Bool
-isCompromised n = NotCompromised /= compromisionType n
 
 nodeHasName ::Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
@@ -47,6 +43,12 @@ addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updated
         existingNode = fromJust $ getNode nname g
         updatedNode = Node nname (protectedBy existingNode ++ [map name accesses]) (compromisionType existingNode)
 
+getAllCompromisedNodeNames :: Graph -> [String]
+getAllCompromisedNodeNames g = map name (filter isCompromised g)
+
+isCompromised :: Node -> Bool
+isCompromised n = NotCompromised /= compromisionType n
+
 setIsCompromised :: CompromisionType -> String -> Graph -> Graph
 setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x { compromisionType = c } else x)
 
@@ -55,6 +57,9 @@ compromiseNodes c xs g = foldl (flip (setIsCompromised c)) g xs
 
 resetNode :: String -> Graph -> Graph
 resetNode = setIsCompromised NotCompromised
+
+resetAllNode :: Graph -> Graph
+resetAllNode g = foldl (flip resetNode) g (getAllCompromisedNodeNames g)
 
 isSubsetOf :: [String] -> [String] -> Bool
 x `isSubsetOf` y = Set.isSubsetOf (Set.fromList x) (Set.fromList y)  
@@ -66,7 +71,7 @@ canBeCompromised nname g
     where 
         maybeNode = getNode nname g
         accesses = protectedBy (fromJust maybeNode)
-        selectedNodes = map name (filter isCompromised g)
+        selectedNodes = getAllCompromisedNodeNames g
 
 getCompromisableNodes :: Graph -> [String]
 getCompromisableNodes g = map name (filter (\x -> not (isCompromised x) && name x `canBeCompromised` g) g)

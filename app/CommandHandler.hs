@@ -23,8 +23,7 @@ invoke cmd graph
         let nodes = extractCommandParameters cmd 1 
         ("Compromised node(s) " ++ show nodes, AAG.compromiseAllPossibleNodes (AAG.compromiseNodes AAG.User nodes graph))
     | "reset" == cmd = do
-        let nodes = map AAG.name (filter AAG.isCompromised graph)
-        ("Graph was resetted", foldl (flip AAG.resetNode) graph nodes)
+        ("Graph was resetted", AAG.resetAllNode graph)
     | "example" == cmd = do
         ("Generated example graph", AAG.example)
     | "clear" == cmd = do
