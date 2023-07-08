@@ -27,7 +27,7 @@ invoke cmd graph
         then
           let name = head args
               names = tail args
-           in ("Added access " ++ show names ++ " for node " ++ name, AAG.addProtectedBy name names graph)
+           in ("Added access " ++ show names ++ " for node " ++ name, AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph)
         else ("Too few arguments provided", graph)
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
       let args = extractCommandParameters cmd 1
