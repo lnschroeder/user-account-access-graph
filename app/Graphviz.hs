@@ -4,7 +4,7 @@ module Graphviz
 where
 
 import qualified AccountAccessGraph as AAG (CompromisionType (..), Graph, Node (..))
-import Text.Format (format)
+import Text.Printf (printf)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
 
@@ -41,9 +41,11 @@ printAccess :: String -> Access -> String
 printAccess nname (Access ns color) =
   concatMap
     ( \n ->
-        format
-          "\t{0} -> {1} [color = \"{2}\";];\n"
-          [n, nname, show color]
+        printf
+          "\t%s -> %s [color = \"%s\";];\n"
+          n
+          nname
+          (show color)
     )
     ns
 
@@ -54,16 +56,15 @@ printCompromisionType NotCompromised = "solid"
 
 printNode :: Node -> String
 printNode (Node nname xs compromisionType) =
-  format
-    ( "\t# {0}\n"
-        ++ "\t{1} [style = \"{2}\";];\n\n"
-        ++ "{3}"
+  printf
+    ( "\t# %s\n"
+        ++ "\t%s [style = \"%s\";];\n\n"
+        ++ "%s"
     )
-    [ nname,
-      nname,
-      printCompromisionType compromisionType,
-      concatMap (\x -> printAccess nname x ++ "\n") xs
-    ]
+    nname
+    nname
+    (printCompromisionType compromisionType)
+    (concatMap (\x -> printAccess nname x ++ "\n") xs)
 
 printGraph :: AAG.Graph -> String
 printGraph g =
