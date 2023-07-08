@@ -10,6 +10,7 @@ module AccountAccessGraph (
     compromiseAllPossibleNodes
 ) where
 
+import Debug.Trace (trace)
 import Data.List (find)
 import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
@@ -33,15 +34,17 @@ addNode nname g = g ++ [Node nname [] NotCompromised]
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
 
-getNodes :: [String] -> Graph -> [Node]
-getNodes nnames g = map (\(Just x) -> x) $ filter (/= Nothing)  $ map (`getNode` g) nnames
+getNodes :: [String] -> Graph -> [Maybe Node]
+getNodes nnames g = map (`getNode` g) nnames
 
 addProtectedBy :: String -> [String] -> Graph -> Graph 
-addProtectedBy nname nnames g = map (\x -> if x `nodeHasName` nname then updatedNode else x) g
+addProtectedBy nname nnames g 
+    | isNothing maybeNode = trace ("Node with name " ++ nname ++ " does not exist") g
+    | any isNothing maybeNodes = trace ("Node with name " ++ head nnames ++ " does not exist") g
+    | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = protectedBy x ++ [nnames]} else x) g
     where
-        accesses = getNodes nnames g
-        existingNode = fromJust $ getNode nname g
-        updatedNode = existingNode {protectedBy = protectedBy existingNode ++ [map name accesses]}
+        maybeNode = getNode nname g
+        maybeNodes = getNodes nnames g
 
 getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames g = map name (filter isCompromised g)
@@ -84,7 +87,8 @@ compromiseAllPossibleNodes g
         compromisableNodes = getCompromisableNodes g
 
 example :: Graph
-example = addProtectedBy "OTPApp Recovery" ["USB Stick"] $
+example = 
+    addProtectedBy "OTPApp_Recovery" ["USB_Stick"] $
     addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
     addProtectedBy "OTPApp" ["Phone", "Finger"] $
     addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
@@ -94,6 +98,7 @@ example = addProtectedBy "OTPApp Recovery" ["USB Stick"] $
     addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
     addProtectedBy "pw_Posteo" ["Bitwarden"] $
     addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
+    addNode "USB_Stick" $
     addNode "Phone" $
     addNode "YubiKey" $
     addNode "Finger" $ 
