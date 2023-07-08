@@ -75,13 +75,13 @@ setIsCompromised :: CompromisionType -> String -> Graph -> Graph
 setIsCompromised c nname = map (\x -> if x `nodeHasName` nname then x {compromisionType = c} else x)
 
 compromiseNodes :: CompromisionType -> [String] -> Graph -> Graph
-compromiseNodes c xs g = foldl (flip (setIsCompromised c)) g xs
+compromiseNodes c xs g = foldr (setIsCompromised c) g xs
 
 resetNode :: String -> Graph -> Graph
 resetNode = setIsCompromised NotCompromised
 
 resetAllNode :: Graph -> Graph
-resetAllNode g = foldl (flip resetNode) g (getAllCompromisedNodeNames g)
+resetAllNode g = foldr resetNode g (getAllCompromisedNodeNames g)
 
 canBeCompromised :: String -> Graph -> Bool
 canBeCompromised nname g
