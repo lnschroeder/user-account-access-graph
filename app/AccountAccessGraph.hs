@@ -41,8 +41,8 @@ getNodes nnames g = map (`getNode` g) nnames
 
 addProtectedBy :: String -> [String] -> Graph -> Graph
 addProtectedBy nname nnames g
-  | isNothing maybeNode = trace ("Node with name " ++ nname ++ " does not exist") g
-  | any isNothing maybeNodes = trace ("Node with name " ++ head nnames ++ " does not exist") g
+  | isNothing maybeNode = trace ("\ESC[33mNode with name " ++ nname ++ " does not exist. Access was not added!") g
+  | any isNothing maybeNodes = trace ("\ESC[33mNode with name " ++ head nnames ++ " does not exist. Access was not added!") g
   | otherwise = map (\x -> if x `nodeHasName` nname then x {protectedBy = protectedBy x ++ [nnames]} else x) g
   where
     maybeNode = getNode nname g

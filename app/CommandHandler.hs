@@ -19,19 +19,19 @@ invoke cmd graph
       if length args == 1
         then
           let name = head args
-           in ("Added node " ++ name, AAG.addNode name graph)
-        else ("Add one node at a time and don't use spaces", graph)
+           in ("\ESC[90mAdded node " ++ name, AAG.addNode name graph)
+        else ("\ESC[33mAdd one node at a time and don't use spaces", graph)
   | "add access" == cmd || "add access " `isPrefixOf` cmd = do
       let args = extractCommandParameters cmd 2
       if length args > 1
         then
           let name = head args
               names = tail args
-           in ( "Added access " ++ show names ++ " for node " ++ name,
+           in ( "\ESC[90mAdded access " ++ show names ++ " for node " ++ name,
                 AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
               )
         else
-          ( "Too few arguments provided",
+          ( "\ESC[33mToo few arguments provided",
             graph
           )
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
@@ -39,27 +39,27 @@ invoke cmd graph
       if not (null args)
         then
           let names = args
-           in ( "Compromised node(s) " ++ show names,
+           in ( "\ESC[90mCompromised node(s) " ++ show names,
                 AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
               )
         else
-          ( "Too few arguments provided",
+          ( "\ESC[33mToo few arguments provided",
             graph
           )
   | "reset" == cmd = do
-      ( "Graph was resetted",
+      ( "\ESC[90mGraph was resetted",
         AAG.resetAllNode graph
         )
   | "example" == cmd = do
-      ( "Generated example graph",
+      ( "\ESC[90mGenerated example graph",
         AAG.example
         )
   | "clear" == cmd = do
-      ( "Cleared graph",
+      ( "\ESC[90mCleared graph",
         []
         )
   | "help" == cmd = do
-      ( "available commands:\n"
+      ( "\ESC[90mavailable commands:\n"
           ++ "  add node <node name>\n"
           ++ "    - adds a new node to the graph\n"
           ++ "  add access <node name> <protector1> <protector2> ...\n"
@@ -75,14 +75,14 @@ invoke cmd graph
         graph
         )
   | otherwise =
-      ( "Unknown command",
+      ( "\ESC[33mUnknown command. Use 'help' for a list of commands",
         graph
       )
 
 commandHandler :: String -> AAG.Graph -> IO ()
 commandHandler path g = do
   writeFile path (printGraph g)
-  putStr "> "
+  putStr "\ESC[32m> "
   hFlush stdout
   name <- getLine
   let (message, graph) = invoke name g
@@ -91,12 +91,13 @@ commandHandler path g = do
 
 queryOutputFile :: IO ()
 queryOutputFile = do
-  putStr "Enter output file path: "
+  putStr "\ESC[90mEnter output file path: \ESC[32m"
   hFlush stdout
   input <- getLine
   if ".dot" `isSuffixOf` input
     then do
+      putStrLn "\ESC[90mUse 'help' for a list of commands"
       commandHandler input []
     else do
-      putStrLn "File path must end with .dot"
+      putStrLn "\ESC[33mFile path must end with .dot"
       queryOutputFile
