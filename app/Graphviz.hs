@@ -52,15 +52,15 @@ printAccess nname (Access ns color) =
     ns
 
 printCompromisionType :: CompromisionType -> String
-printCompromisionType Automatic = "dashed,bold"
-printCompromisionType User = "bold"
-printCompromisionType NotCompromised = "solid"
+printCompromisionType Automatic = "[style = \"dashed,bold\"; color = red;]"
+printCompromisionType User = "[style = \"bold\"; color = red;]"
+printCompromisionType NotCompromised = "[style = \"solid\";]"
 
 printNode :: Node -> String
 printNode (Node nname xs compromisionType) =
   printf
     ( "\t# %s\n"
-        ++ "\t%s [style = \"%s\";];\n\n"
+        ++ "\t%s %s;\n\n"
         ++ "%s"
     )
     nname
