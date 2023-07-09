@@ -81,7 +81,15 @@ invoke cmd graph
 
 commandHandler :: String -> AAG.Graph -> IO ()
 commandHandler path g = do
-  writeFile path (printGraph g)
+  if null g
+    then
+      writeFile
+        path
+        ( "digraph {\n"
+            ++ "\t\"DILMA?\" [shape = doubleoctagon;style = \"bold,filled\";fillcolor = orange;];\n"
+            ++ "}"
+        )
+    else writeFile path (printGraph g)
   putStr "\ESC[32m> "
   hFlush stdout
   cmd <- getLine
