@@ -121,21 +121,21 @@ example =
     addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
       addProtectedBy "OTPApp" ["Phone", "Finger"] $
         addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
-          addProtectedBy "otp_Posteo" ["OTPApp"] $
-            addProtectedBy "otp_Posteo" ["YubiKey"] $
+          addProtectedBy "otp_Gmail" ["OTPApp"] $
+            addProtectedBy "otp_Gmail" ["YubiKey"] $
               addProtectedBy "Bitwarden" ["Finger", "Phone"] $
                 addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
-                  addProtectedBy "pw_Posteo" ["Bitwarden"] $
-                    addProtectedBy "Posteo" ["pw_Posteo", "otp_Posteo"] $
+                  addProtectedBy "pw_Gmail" ["Bitwarden"] $
+                    addProtectedBy "Gmail" ["pw_Gmail", "otp_Gmail"] $
                       addNode "USB_Stick" $
                         addNode "Phone" $
                           addNode "YubiKey" $
                             addNode "Finger" $
-                              addNode "Posteo" $
+                              addNode "Gmail" $
                                 addNode "Bitwarden" $
                                   addNode "OTPApp" $
                                     addNode "OTPApp_Recovery" $
-                                      addNode "otp_Posteo" $
-                                        addNode "pw_Posteo" $
+                                      addNode "otp_Gmail" $
+                                        addNode "pw_Gmail" $
                                           addNode "pw_OTPApp" $
                                             addNode "pw_Bitwarden" []
