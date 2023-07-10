@@ -117,25 +117,30 @@ compromiseAllPossibleNodes g
 
 example :: Graph
 example =
-  addProtectedBy "OTPApp_Recovery" ["USB_Stick"] $
-    addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
-      addProtectedBy "OTPApp" ["Phone", "Finger"] $
-        addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
-          addProtectedBy "otp_Gmail" ["OTPApp"] $
-            addProtectedBy "otp_Gmail" ["YubiKey"] $
-              addProtectedBy "Bitwarden" ["Finger", "Phone"] $
-                addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
-                  addProtectedBy "pw_Gmail" ["Bitwarden"] $
-                    addProtectedBy "Gmail" ["pw_Gmail", "otp_Gmail"] $
-                      addNode "USB_Stick" $
-                        addNode "Phone" $
-                          addNode "YubiKey" $
-                            addNode "Finger" $
-                              addNode "Gmail" $
-                                addNode "Bitwarden" $
-                                  addNode "OTPApp" $
-                                    addNode "OTPApp_Recovery" $
-                                      addNode "otp_Gmail" $
-                                        addNode "pw_Gmail" $
-                                          addNode "pw_OTPApp" $
-                                            addNode "pw_Bitwarden" []
+  addProtectedBy "pw_Netflix" ["OTPApp"] $
+    addProtectedBy "Netflix" ["pw_Netflix"] $
+      addProtectedBy "Netflix" ["Gmail"] $
+        addProtectedBy "OTPApp_Recovery" ["USB_Stick"] $
+          addProtectedBy "OTPApp" ["OTPApp_Recovery"] $
+            addProtectedBy "OTPApp" ["Phone", "Finger"] $
+              addProtectedBy "OTPApp" ["pw_OTPApp", "Phone"] $
+                addProtectedBy "otp_Gmail" ["OTPApp"] $
+                  addProtectedBy "otp_Gmail" ["YubiKey"] $
+                    addProtectedBy "Bitwarden" ["Finger", "Phone"] $
+                      addProtectedBy "Bitwarden" ["pw_Bitwarden"] $
+                        addProtectedBy "pw_Gmail" ["Bitwarden"] $
+                          addProtectedBy "Gmail" ["pw_Gmail", "otp_Gmail"] $
+                            addNode "Netflix" $
+                              addNode "pw_Netflix" $
+                                addNode "USB_Stick" $
+                                  addNode "Phone" $
+                                    addNode "YubiKey" $
+                                      addNode "Finger" $
+                                        addNode "Gmail" $
+                                          addNode "Bitwarden" $
+                                            addNode "OTPApp" $
+                                              addNode "OTPApp_Recovery" $
+                                                addNode "otp_Gmail" $
+                                                  addNode "pw_Gmail" $
+                                                    addNode "pw_OTPApp" $
+                                                      addNode "pw_Bitwarden" []
