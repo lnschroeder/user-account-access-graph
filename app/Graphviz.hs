@@ -4,6 +4,7 @@ module Graphviz
 where
 
 import qualified AccountAccessGraph as AAG (CompromisionType (..), Graph, Node (..))
+import Data.List (intercalate)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 
@@ -41,36 +42,43 @@ toGraph = map toNode
 
 printAccess :: String -> Access -> String
 printAccess nname (Access ns color) =
-  concatMap
-    ( \n ->
-        printf
-          "\t%s -> %s [color = \"%s\";];\n"
-          n
-          nname
-          (show color)
-    )
-    ns
+  printf
+    "\t{%s} -> %s [color = \"%s\";];"
+    (unwords ns)
+    nname
+    (show color)
+
+printAccesses :: Node -> String
+printAccesses (Node nname accesses _) = intercalate "\n" (map (printAccess nname) accesses)
 
 printCompromisionType :: CompromisionType -> String
 printCompromisionType Automatic = "[style = \"dashed,bold\"; color = red;]"
 printCompromisionType User = "[style = \"bold\"; color = red;]"
 printCompromisionType NotCompromised = "[style = \"solid\";]"
 
+printNodeHeader :: Node -> String
+printNodeHeader (Node nname _ compromisionType) = printf "%s %s;" nname (printCompromisionType compromisionType)
+
 printNode :: Node -> String
-printNode (Node nname xs compromisionType) =
+printNode node =
   printf
     ( "\t# %s\n"
-        ++ "\t%s %s;\n\n"
-        ++ "%s"
+        ++ "\t%s"
+        ++ ( if null (protectedBy node)
+               then ""
+               else "\n\n" 
+           )
+        ++ printAccesses node
     )
-    nname
-    nname
-    (printCompromisionType compromisionType)
-    (concatMap (\x -> printAccess nname x ++ "\n") xs)
+    (name node)
+    (printNodeHeader node)
+
+printNodes :: [Node] -> String
+printNodes nodes = intercalate "\n\n" (map printNode nodes)
 
 printGraph :: AAG.Graph -> String
 printGraph g =
   "digraph {\n"
     ++ "\tedge [colorscheme = \"dark28\";];\n\n"
-    ++ concatMap printNode (toGraph g)
-    ++ "}"
+    ++ printNodes (toGraph g)
+    ++ "\n}"
