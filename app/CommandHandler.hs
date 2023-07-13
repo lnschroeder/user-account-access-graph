@@ -1,5 +1,5 @@
 module CommandHandler
-  ( queryOutputFile,
+  ( queryGraphName,
   )
 where
 
@@ -7,6 +7,7 @@ import qualified AccountAccessGraph as AAG
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Graphviz (printGraph)
+import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 
 extractCommandParameters :: String -> Int -> [String]
@@ -80,32 +81,48 @@ invoke cmd graph
       )
 
 commandHandler :: String -> AAG.Graph -> IO ()
-commandHandler path g = do
+commandHandler filename g = do
+  let dotFile = filename ++ ".dot"
+  let aagFile = filename ++ ".aag"
+
+  AAG.saveToFile aagFile g
+
   if null g
     then
       writeFile
-        path
+        dotFile
         ( "digraph {\n"
             ++ "\t\"DILMA?\" [shape = doubleoctagon;style = \"bold,filled\";fillcolor = orange;];\n"
             ++ "}"
         )
-    else writeFile path (printGraph g)
+    else writeFile dotFile (printGraph g)
   putStr "\ESC[32m> "
   hFlush stdout
   cmd <- getLine
   let (message, graph) = invoke cmd g
   putStrLn message
-  commandHandler path graph
+  commandHandler filename graph
 
-queryOutputFile :: IO ()
-queryOutputFile = do
-  putStr "\ESC[90mEnter output file path: \ESC[32m"
+queryOverwriteOrLoad :: String -> IO ()
+queryOverwriteOrLoad filename = do
+  putStrLn ("\ESC[33mFile already exists: " ++ aagFilename)
+  putStr "\ESC[90mLoad (l) or overwrite (o): \ESC[32m"
   hFlush stdout
-  input <- getLine
-  if ".dot" `isSuffixOf` input
-    then do
-      putStrLn "\ESC[90mUse 'help' for a list of commands"
-      commandHandler input []
-    else do
-      putStrLn "\ESC[33mFile path must end with .dot"
-      queryOutputFile
+  arg <- getLine
+  case arg of
+    "o" -> commandHandler filename []
+    "l" -> g `seq` commandHandler filename g -- necessary to avoid `resource busy`
+    _ -> queryOverwriteOrLoad filename
+  where 
+    aagFilename = filename ++ ".aag"
+    g = AAG.loadFromFile aagFilename 
+
+queryGraphName :: IO ()
+queryGraphName = do
+  putStr "\ESC[90mEnter the name of the graph: \ESC[32m"
+  hFlush stdout
+  filename <- getLine
+  fileExists <- doesFileExist (filename ++ ".aag")
+  if fileExists
+    then queryOverwriteOrLoad filename
+    else commandHandler filename []

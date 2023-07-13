@@ -8,6 +8,8 @@ module AccountAccessGraph
     compromiseNodes,
     resetAllNode,
     compromiseAllPossibleNodes,
+    loadFromFile,
+    saveToFile,
   )
 where
 
@@ -15,15 +17,16 @@ import Data.List (find)
 import Data.Maybe (fromJust, isNothing)
 import qualified Data.Set as Set
 import Debug.Trace (trace)
+import System.IO.Unsafe (unsafePerformIO)
 
-data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
+data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read)
 
 data Node = Node
   { name :: String,
     protectedBy :: Set.Set (Set.Set String),
     compromisionType :: CompromisionType
   }
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 type Graph = [Node]
 
@@ -114,6 +117,14 @@ compromiseAllPossibleNodes g
   | otherwise = compromiseAllPossibleNodes $ compromiseNodes Automatic compromisableNodes g
   where
     compromisableNodes = getCompromisableNodes g
+
+saveToFile :: FilePath -> Graph -> IO ()
+saveToFile filePath graph = writeFile filePath (show graph)
+
+loadFromFile :: FilePath -> Graph
+loadFromFile filePath = unsafePerformIO $ do
+  contents <- readFile filePath
+  return (read contents)
 
 example :: Graph
 example =
