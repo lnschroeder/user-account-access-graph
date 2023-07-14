@@ -45,7 +45,9 @@ getNodes :: [String] -> Graph -> [Maybe Node]
 getNodes nnames g = map (`getNode` g) nnames
 
 removeProtectionFromNode :: String -> Node -> Node
-removeProtectionFromNode nname n = n {protectedBy = Set.map (Set.delete nname) (protectedBy n)}
+removeProtectionFromNode nname n = n {protectedBy = updatedProtectedBy}
+  where
+    updatedProtectedBy = Set.filter (not . null) $ Set.map (Set.delete nname) (protectedBy n)
 
 removeNode :: String -> Graph -> Graph
 removeNode nname g = map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
