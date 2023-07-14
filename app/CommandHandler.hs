@@ -35,6 +35,15 @@ invoke cmd graph
           ( "\ESC[33mToo few arguments provided",
             graph
           )
+  | "remove node" == cmd || "remove node " `isPrefixOf` cmd = do
+      let args = extractCommandParameters cmd 2
+      if length args == 1
+        then
+          let name = head args
+           in if AAG.hasNode name graph
+                then ("\ESC[90mRemoved node " ++ name, AAG.removeNode name graph)
+                else ("\ESC[33mNode " ++ name ++ " not in Graph", graph)
+        else ("\ESC[33mRemove one node at a time and don't use spaces", graph)
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
       let args = extractCommandParameters cmd 1
       if not (null args)
@@ -113,9 +122,9 @@ queryOverwriteOrLoad filename = do
     "o" -> commandHandler filename []
     "l" -> g `seq` commandHandler filename g -- necessary to avoid `resource busy`
     _ -> queryOverwriteOrLoad filename
-  where 
+  where
     aagFilename = filename ++ ".aag"
-    g = AAG.loadFromFile aagFilename 
+    g = AAG.loadFromFile aagFilename
 
 queryGraphName :: IO ()
 queryGraphName = do

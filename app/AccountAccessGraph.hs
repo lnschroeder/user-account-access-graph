@@ -4,12 +4,14 @@ module AccountAccessGraph
     Graph,
     addNode,
     addProtectedBy,
+    removeNode,
     example,
     compromiseNodes,
     resetAllNode,
     compromiseAllPossibleNodes,
     loadFromFile,
     saveToFile,
+    hasNode,
   )
 where
 
@@ -41,6 +43,15 @@ getNode nname = find (`nodeHasName` nname)
 
 getNodes :: [String] -> Graph -> [Maybe Node]
 getNodes nnames g = map (`getNode` g) nnames
+
+removeProtectionFromNode :: String -> Node -> Node
+removeProtectionFromNode nname n = n {protectedBy = Set.map (Set.delete nname) (protectedBy n)}
+
+removeNode :: String -> Graph -> Graph
+removeNode nname g = map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
+
+hasNode :: String -> Graph -> Bool
+hasNode nname g = nname `elem` map name g
 
 addProtectedBy :: String -> [String] -> Graph -> Graph
 addProtectedBy nname nnames g
