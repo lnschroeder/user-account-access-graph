@@ -6,21 +6,22 @@ where
 import qualified AccountAccessGraph as AAG
 import Data.List (isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
+import Data.Maybe (isNothing)
 import qualified Graphviz as Representation
 import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 import Utils (info, query, warn)
 
-extractCommandParameters :: String -> Int -> [String]
-extractCommandParameters cmd l = drop l (words cmd)
+extractArgs :: String -> Int -> [String]
+extractArgs cmd l = drop l (words cmd)
 
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addNode args graph
-  | length args == 1 && not (AAG.hasNode name graph) =
+  | syntaxOk && not nodeExists =
       ( info "Added node " ++ name,
         AAG.addNode name graph
       )
-  | length args == 1 && AAG.hasNode name graph =
+  | syntaxOk && nodeExists =
       ( warn "Node " ++ name ++ " already exists",
         graph
       )
@@ -30,14 +31,16 @@ addNode args graph
       )
   where
     name = head args
+    syntaxOk = length args == 1
+    nodeExists = AAG.hasNode name graph
 
 removeNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 removeNode args graph
-  | length args == 1 && AAG.hasNode name graph =
+  | syntaxOk && nodeExists =
       ( info "Removed node " ++ name,
         AAG.removeNode name graph
       )
-  | length args == 1 && not (AAG.hasNode name graph) =
+  | syntaxOk && not nodeExists =
       ( warn "Node " ++ name ++ " not in Graph",
         graph
       )
@@ -46,24 +49,44 @@ removeNode args graph
         graph
       )
   where
+    syntaxOk = length args == 1
     name = head args
+    nodeExists = AAG.hasNode name graph
 
 addAccess :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addAccess args graph
-  | length args > 1 =
-      let name = head args
-          names = tail args
-       in ( info "Added access " ++ show names ++ " for node " ++ name,
-            AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
-          )
+  | syntaxOk && null missingNodes && not accessExists =
+      ( info "Added access " ++ show names ++ " for node " ++ name,
+        AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
+      )
+  | syntaxOk && null missingNodes && accessExists =
+      ( warn "Access already exists "
+          ++ show names
+          ++ " for node "
+          ++ name
+          ++ ". Access was not added!",
+        graph
+      )
+  | syntaxOk && not (null missingNodes) =
+      ( warn "Node with name "
+          ++ name
+          ++ " does not exist. Access was not added!",
+        graph
+      )
   | otherwise =
       ( warn "Too few arguments provided",
         graph
       )
+  where
+    syntaxOk = length args > 1
+    name = head args
+    names = tail args
+    missingNodes = filter (\x -> not (AAG.hasNode x graph)) (name : names)
+    accessExists = AAG.hasAccess name names graph
 
 compromiseNodes :: [String] -> AAG.Graph -> (String, AAG.Graph)
 compromiseNodes args graph
-  | not (null args) =
+  | syntaxOk =
       ( info "Compromised node(s) " ++ show names,
         AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
       )
@@ -72,6 +95,7 @@ compromiseNodes args graph
         graph
       )
   where
+    syntaxOk = not (null args)
     names = args
 
 resetGraph :: AAG.Graph -> (String, AAG.Graph)
@@ -119,16 +143,16 @@ unkownCommand cmd graph =
 invoke :: String -> AAG.Graph -> (String, AAG.Graph)
 invoke cmd
   | "add node" == cmd || "add node " `isPrefixOf` cmd = do
-      let args = extractCommandParameters cmd 2
+      let args = extractArgs cmd 2
       addNode args
   | "add access" == cmd || "add access " `isPrefixOf` cmd = do
-      let args = extractCommandParameters cmd 2
+      let args = extractArgs cmd 2
       addAccess args
   | "remove node" == cmd || "remove node " `isPrefixOf` cmd = do
-      let args = extractCommandParameters cmd 2
+      let args = extractArgs cmd 2
       removeNode args
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
-      let args = extractCommandParameters cmd 1
+      let args = extractArgs cmd 1
       compromiseNodes args
   | "reset" == cmd = do
       resetGraph

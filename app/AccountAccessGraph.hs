@@ -12,11 +12,13 @@ module AccountAccessGraph
     loadFromFile,
     saveToFile,
     hasNode,
+    hasNodes,
+    hasAccess,
   )
 where
 
 import Data.List (find)
-import Data.Maybe (fromJust, isNothing)
+import Data.Maybe (fromJust, isJust, isNothing)
 import qualified Data.Set as Set
 import Debug.Trace (trace)
 import System.IO.Unsafe (unsafePerformIO)
@@ -44,6 +46,17 @@ getNode nname = find (`nodeHasName` nname)
 getNodes :: [String] -> Graph -> [Maybe Node]
 getNodes nnames g = map (`getNode` g) nnames
 
+hasNode :: String -> Graph -> Bool
+hasNode nname g = isJust (getNode nname g)
+
+hasNodes :: [String] -> Graph -> Bool
+hasNodes nnames g = all (`hasNode` g) nnames
+
+hasAccess :: String -> [String] -> Graph -> Bool
+hasAccess nname nnames g = Set.fromList nnames `Set.member` protectedBy (fromJust maybeNode)
+  where
+    maybeNode = getNode nname g
+
 removeProtectionFromNode :: String -> Node -> Node
 removeProtectionFromNode nname n = n {protectedBy = updatedProtectedBy}
   where
@@ -53,40 +66,14 @@ removeNode :: String -> Graph -> Graph
 removeNode nname g = map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
 
 hasNode :: String -> Graph -> Bool
-hasNode nname g = nname `elem` map name g
-
 addProtectedBy :: String -> [String] -> Graph -> Graph
-addProtectedBy nname nnames g
-  | isNothing maybeNode =
-      trace
-        ( "\ESC[33mNode with name " ++ nname ++ " does not exist. Access was not added!"
-        )
-        g
-  | any isNothing maybeNodes =
-      trace
-        ( "\ESC[33mNode with name " ++ head nnames ++ " does not exist. Access was not added!"
-        )
-        g
-  | any (\x -> Set.fromList nnames == x) (protectedBy (fromJust maybeNode)) =
-      trace
-        ( "\ESC[33mAccess already exists "
-            ++ show nnames
-            ++ " for node "
-            ++ nname
-            ++ ". Access was not added!"
-        )
-        g
-  | otherwise =
-      map
-        ( \x ->
-            if x `nodeHasName` nname
-              then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
-              else x
-        )
-        g
-  where
-    maybeNode = getNode nname g
-    maybeNodes = getNodes nnames g
+addProtectedBy nname nnames =
+  map
+    ( \x ->
+        if x `nodeHasName` nname
+          then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
+          else x
+    )
 
 getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames = map name . filter isCompromised
