@@ -1,5 +1,5 @@
 module Graphviz
-  ( printGraph,
+  ( saveToFile,
   )
 where
 
@@ -66,7 +66,7 @@ printNode node =
         ++ "\t%s"
         ++ ( if null (protectedBy node)
                then ""
-               else "\n\n" 
+               else "\n\n"
            )
         ++ printAccesses node
     )
@@ -76,9 +76,20 @@ printNode node =
 printNodes :: [Node] -> String
 printNodes nodes = intercalate "\n\n" (map printNode nodes)
 
+startScreen :: String
+startScreen =
+  "digraph {\n"
+    ++ "\t\"DILMA?\" [shape = doubleoctagon;style = \"bold,filled\";fillcolor = orange;];\n"
+    ++ "}"
+
 printGraph :: AAG.Graph -> String
 printGraph g =
   "digraph {\n"
     ++ "\tedge [colorscheme = \"dark28\";];\n\n"
     ++ printNodes (toGraph g)
     ++ "\n}"
+
+saveToFile :: FilePath -> AAG.Graph -> IO ()
+saveToFile path graph
+  | null graph = writeFile path startScreen
+  | otherwise = writeFile path (printGraph graph)
