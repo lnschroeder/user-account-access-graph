@@ -69,7 +69,7 @@ addAccess args graph
       )
   | syntaxOk && not (null missingNodes) =
       ( warn "Node with name "
-          ++ name
+          ++ head missingNodes
           ++ " does not exist. Access was not added!",
         graph
       )
