@@ -16,9 +16,13 @@ extractCommandParameters cmd l = drop l (words cmd)
 
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addNode args graph
-  | length args == 1 =
+  | length args == 1 && not (AAG.hasNode name graph) =
       ( info "Added node " ++ name,
         AAG.addNode name graph
+      )
+  | length args == 1 && AAG.hasNode name graph =
+      ( warn "Node " ++ name ++ " already exists",
+        graph
       )
   | otherwise =
       ( warn "Add one node at a time and don't use spaces",
