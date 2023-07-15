@@ -43,8 +43,8 @@ toGraph = map toNode
 printAccess :: String -> Access -> String
 printAccess nname (Access ns color) =
   printf
-    "\t{%s} -> %s [color = \"%s\";];"
-    (unwords ns)
+    "\t{\"%s\"} -> \"%s\" [color = \"%s\";];"
+    (intercalate "\" \"" ns)
     nname
     (show color)
 
@@ -57,7 +57,7 @@ printCompromisionType User = "[style = \"bold\"; color = red;]"
 printCompromisionType NotCompromised = "[style = \"solid\";]"
 
 printNodeHeader :: Node -> String
-printNodeHeader (Node nname _ compromisionType) = printf "%s %s;" nname (printCompromisionType compromisionType)
+printNodeHeader (Node nname _ compromisionType) = printf "\"%s\" %s;" nname (printCompromisionType compromisionType)
 
 printNode :: Node -> String
 printNode node =
