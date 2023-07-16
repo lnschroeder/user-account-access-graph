@@ -65,7 +65,6 @@ removeProtectionFromNode nname n = n {protectedBy = updatedProtectedBy}
 removeNode :: String -> Graph -> Graph
 removeNode nname g = map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
 
-hasNode :: String -> Graph -> Bool
 addProtectedBy :: String -> [String] -> Graph -> Graph
 addProtectedBy nname nnames =
   map

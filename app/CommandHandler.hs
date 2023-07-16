@@ -17,17 +17,17 @@ extractArgs cmd l = drop l (words cmd)
 
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addNode args graph
-  | syntaxOk && not nodeExists =
-      ( info "Added node " ++ name,
-        AAG.addNode name graph
+  | not syntaxOk =
+      ( warn "Add one node at a time and don't use spaces",
+        graph
       )
-  | syntaxOk && nodeExists =
+  | nodeExists =
       ( warn "Node " ++ name ++ " already exists",
         graph
       )
   | otherwise =
-      ( warn "Add one node at a time and don't use spaces",
-        graph
+      ( info "Added node " ++ name,
+        AAG.addNode name graph
       )
   where
     name = head args
@@ -36,17 +36,17 @@ addNode args graph
 
 removeNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 removeNode args graph
-  | syntaxOk && nodeExists =
-      ( info "Removed node " ++ name,
-        AAG.removeNode name graph
+  | not syntaxOk =
+      ( warn "Remove one node at a time and don't use spaces",
+        graph
       )
-  | syntaxOk && not nodeExists =
+  | not nodeExists =
       ( warn "Node " ++ name ++ " not in Graph",
         graph
       )
   | otherwise =
-      ( warn "Remove one node at a time and don't use spaces",
-        graph
+      ( info "Removed node " ++ name,
+        AAG.removeNode name graph
       )
   where
     syntaxOk = length args == 1
@@ -55,11 +55,17 @@ removeNode args graph
 
 addAccess :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addAccess args graph
-  | syntaxOk && null missingNodes && not accessExists =
-      ( info "Added access " ++ show names ++ " for node " ++ name,
-        AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
+  | not syntaxOk =
+      ( warn "Too few arguments provided",
+        graph
       )
-  | syntaxOk && null missingNodes && accessExists =
+  | not (null missingNodes) =
+      ( warn "Node with name "
+          ++ head missingNodes
+          ++ " does not exist. Access was not added!",
+        graph
+      )
+  | accessExists =
       ( warn "Access already exists "
           ++ show names
           ++ " for node "
@@ -67,15 +73,9 @@ addAccess args graph
           ++ ". Access was not added!",
         graph
       )
-  | syntaxOk && not (null missingNodes) =
-      ( warn "Node with name "
-          ++ head missingNodes
-          ++ " does not exist. Access was not added!",
-        graph
-      )
   | otherwise =
-      ( warn "Too few arguments provided",
-        graph
+      ( info "Added access " ++ show names ++ " for node " ++ name,
+        AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
       )
   where
     syntaxOk = length args > 1
@@ -86,13 +86,13 @@ addAccess args graph
 
 compromiseNodes :: [String] -> AAG.Graph -> (String, AAG.Graph)
 compromiseNodes args graph
-  | syntaxOk =
-      ( info "Compromised node(s) " ++ show names,
-        AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
-      )
-  | otherwise =
+  | not syntaxOk =
       ( warn "Too few arguments provided",
         graph
+      )
+  | otherwise =
+      ( info "Compromised node(s) " ++ show names,
+        AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
       )
   where
     syntaxOk = not (null args)
