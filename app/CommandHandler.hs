@@ -84,6 +84,37 @@ addAccess args graph
     missingNodes = filter (\x -> not (AAG.hasNode x graph)) (name : names)
     accessExists = AAG.hasAccess name names graph
 
+removeAccess :: [String] -> AAG.Graph -> (String, AAG.Graph)
+removeAccess args graph
+  | not syntaxOk = 
+      ( warn "Too few arguments provided",
+        graph
+      )
+  | not (null missingNodes) = 
+     ( warn "Node with name "
+          ++ head missingNodes
+          ++ " does not exist. Access was not removed!",
+        graph
+      )
+  | not accessExists = 
+     ( warn "Access does not exists "
+          ++ show names
+          ++ " for node "
+          ++ name
+          ++ ". Access was not removed!",
+        graph
+      )
+  | otherwise =
+      ( info "Removed access " ++ show names ++ " for node " ++ name,
+        AAG.compromiseAllPossibleNodes $ AAG.removeProtectedBy name names graph
+      )
+  where
+    syntaxOk = length args > 1
+    name = head args
+    names = tail args
+    missingNodes = filter (\x -> not (AAG.hasNode x graph)) (name : names)
+    accessExists = AAG.hasAccess name names graph
+
 compromiseNodes :: [String] -> AAG.Graph -> (String, AAG.Graph)
 compromiseNodes args graph
   | not syntaxOk =
@@ -121,8 +152,12 @@ showHelp graph =
   ( info "available commands:\n"
       ++ "  add node <node name>\n"
       ++ "    - adds a new node to the graph\n"
+      ++ "  remove node <node name>\n"
+      ++ "    - removes an existing node from the graph\n"
       ++ "  add access <node name> <protector1> <protector2> ...\n"
       ++ "    - adds a list of nodes (protectors) to a given node as access\n"
+      ++ "  remove access <node name> <protector1> <protector2> ...\n"
+      ++ "    - removes an existing access (protectors) from a given node\n"
       ++ "  compromise <node name 1> <node name 2> ...\n"
       ++ "    - compromises the given nodes\n"
       ++ "  reset\n"
@@ -151,6 +186,9 @@ invoke cmd
   | "remove node" == cmd || "remove node " `isPrefixOf` cmd = do
       let args = extractArgs cmd 2
       removeNode args
+  | "remove access" == cmd || "remove access " `isPrefixOf` cmd = do
+      let args = extractArgs cmd 2
+      removeAccess args
   | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
       let args = extractArgs cmd 1
       compromiseNodes args

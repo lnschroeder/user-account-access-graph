@@ -14,6 +14,7 @@ module AccountAccessGraph
     hasNode,
     hasNodes,
     hasAccess,
+    removeProtectedBy,
   )
 where
 
@@ -71,6 +72,15 @@ addProtectedBy nname nnames =
     ( \x ->
         if x `nodeHasName` nname
           then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
+          else x
+    )
+
+removeProtectedBy :: String -> [String] -> Graph -> Graph
+removeProtectedBy nname nnames =
+  map
+    ( \x ->
+        if x `nodeHasName` nname
+          then x {protectedBy = Set.delete (Set.fromList nnames) (protectedBy x)}
           else x
     )
 
