@@ -4,11 +4,14 @@ module Graphviz
 where
 
 import qualified AccountAccessGraph as AAG (CompromisionType (..), Graph, Node (..))
-import Data.List (intercalate)
+import Data.List (intercalate, sort)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
+
+colorscheme :: String
+colorscheme = "dark28"
 
 data Access = Access
   { names :: [String],
@@ -76,20 +79,51 @@ printNode node =
 printNodes :: [Node] -> String
 printNodes nodes = intercalate "\n\n" (map printNode nodes)
 
+printGraph :: Graph -> String
+printGraph g =
+  "\t// Main Graph\n"
+    ++ "\tedge [colorscheme = \""
+    ++ colorscheme
+    ++ "\";];\n\n"
+    ++ printNodes g
+
+getAllColors :: Graph -> Set.Set Int
+getAllColors graph = Set.fromList $ concatMap (map color . protectedBy) graph
+
+printColor :: Int -> String
+printColor c = "\t\t\"" ++ show c ++ "\" [color = \"" ++ show c ++ "\";];"
+
+printColors :: Set.Set Int -> String
+printColors cs = intercalate "\n" (map printColor (sort $ Set.toList cs))
+
+printLegend :: Graph -> String
+printLegend graph =
+  "\t// Legend\n"
+    ++ "\tsubgraph {\n"
+    ++ "\t\tnode [colorscheme = \""
+    ++ colorscheme
+    ++ "\"; style = filled;];\n"
+    ++ printColors (getAllColors graph)
+    ++ "\n"
+    ++ "\t}"
+
 startScreen :: String
 startScreen =
   "digraph {\n"
     ++ "\t\"DILMA?\" [shape = doubleoctagon;style = \"bold,filled\";fillcolor = orange;];\n"
     ++ "}"
 
-printGraph :: AAG.Graph -> String
-printGraph g =
+printDotContent :: AAG.Graph -> String
+printDotContent g =
   "digraph {\n"
-    ++ "\tedge [colorscheme = \"dark28\";];\n\n"
-    ++ printNodes (toGraph g)
+    ++ printLegend graph
+    ++ "\n\n"
+    ++ printGraph graph
     ++ "\n}"
+  where
+    graph = toGraph g
 
 saveToFile :: FilePath -> AAG.Graph -> IO ()
 saveToFile path graph
   | null graph = writeFile path startScreen
-  | otherwise = writeFile path (printGraph graph)
+  | otherwise = writeFile path (printDotContent graph)
