@@ -116,8 +116,6 @@ startScreen =
 printDotContent :: AAG.Graph -> String
 printDotContent g =
   "digraph {\n"
-    ++ printLegend graph
-    ++ "\n\n"
     ++ printGraph graph
     ++ "\n}"
   where
