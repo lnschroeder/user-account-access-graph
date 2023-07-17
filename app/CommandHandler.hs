@@ -18,15 +18,25 @@ extractArgs cmd l = drop l (words cmd)
 getResettedGraph :: String -> AAG.Graph
 getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aag")
 
+crackLevel2 :: String -> String -> AAG.Graph -> (String, AAG.Graph)
+crackLevel2 n filename graph
+  | n == "pw_Farmarama" && solve = ("You Won here is your password: schuhe.an", AAG.setIsCompromised AAG.Solved n graph)
+  | n == "pw_Farmarama" = ("Well done, come back later!", AAG.setIsCompromised AAG.Pending n graph)
+  | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User n graph)
+    where 
+      compromisableNodes = AAG.getAllCompromisedNodeNames graph
+      solve = all (`elem` compromisableNodes) ["YubiKey", "RaspberryPi"]
+
 crack :: [String] -> String -> AAG.Graph -> (String, AAG.Graph)
 crack args filename graph
-  | not syntaxOk = ("TODO", graph)
-  | not nodeExists = ("TODO", graph)
+  | not syntaxOk = ("You can only crack one node at a time. Use 'crack <node_name>", graph)
+  | not nodeExists = ("Typo?", graph)
   | not nodeCanBeCompromised = ("You Failed. Start all over again.", getResettedGraph filename)
-  | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User name graph)
+  | filename == "level2" = crackLevel2 name filename graph
+  | otherwise = ("Level not implemented yet:" ++ filename, AAG.setIsCompromised AAG.User name graph)
   where
-    name = head args
     syntaxOk = length args == 1
+    name = head args
     nodeExists = AAG.hasNode name graph
     nodeCanBeCompromised = AAG.canBeCompromised name graph
 

@@ -8,7 +8,7 @@ import Data.List (intercalate, sort)
 import qualified Data.Set as Set
 import Text.Printf (printf)
 
-data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq)
+data CompromisionType = Automatic | User | NotCompromised | Pending | Solved deriving (Show, Eq)
 
 colorscheme :: String
 colorscheme = "dark28"
@@ -36,6 +36,8 @@ toCompromisionType ct = case ct of
   AAG.Automatic -> Automatic
   AAG.User -> User
   AAG.NotCompromised -> NotCompromised
+  AAG.Pending -> Pending
+  AAG.Solved -> Solved
 
 toNode :: AAG.Node -> Node
 toNode n = Node (AAG.name n) (toProtectedBy (AAG.protectedBy n)) (toCompromisionType (AAG.compromisionType n))
@@ -55,9 +57,11 @@ printAccesses :: Node -> String
 printAccesses (Node nname accesses _) = intercalate "\n" (map (printAccess nname) accesses)
 
 printCompromisionType :: CompromisionType -> String
-printCompromisionType Automatic = "[style = \"dashed,bold\"; color = red;]"
-printCompromisionType User = "[style = \"bold\"; color = red;]"
+printCompromisionType Automatic = "[style = \"dashed,bold\"; color = \"red\";]"
+printCompromisionType User = "[style = \"bold\"; color = \"red\";]"
 printCompromisionType NotCompromised = "[style = \"solid\";]"
+printCompromisionType Pending = "[style = \"dashed,bold\"; color = \"gold\";]"
+printCompromisionType Solved = "[style = \"bold\"; color = \"gold\";]"
 
 printNodeHeader :: Node -> String
 printNodeHeader (Node nname _ compromisionType) = printf "\"%s\" %s;" nname (printCompromisionType compromisionType)

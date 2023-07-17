@@ -19,6 +19,7 @@ module AccountAccessGraph
     removeProtectedBy,
     canBeCompromised,
     setIsCompromised,
+    getAllCompromisedNodeNames,
   )
 where
 
@@ -29,7 +30,7 @@ import Debug.Trace (trace)
 import System.IO.Unsafe (unsafePerformIO)
 import Utils (decrypt, encrypt)
 
-data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read)
+data CompromisionType = Automatic | User | NotCompromised | Pending | Solved deriving (Show, Eq, Read)
 
 data Node = Node
   { name :: String,
