@@ -15,6 +15,8 @@ module AccountAccessGraph
     hasNodes,
     hasAccess,
     removeProtectedBy,
+    canBeCompromised,
+    setIsCompromised,
   )
 where
 

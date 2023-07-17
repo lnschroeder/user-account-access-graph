@@ -16,6 +16,19 @@ import Levels ( level2 )
 extractArgs :: String -> Int -> [String]
 extractArgs cmd l = drop l (words cmd)
 
+crack :: [String] -> AAG.Graph -> (String, AAG.Graph)
+crack args graph
+  | not syntaxOk = ("TODO", graph)
+  | not nodeExists = ("TODO", graph)
+  | not nodeCanBeCompromised =  ("You Failed. Start all over again.", Levels.level2)
+  | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User name graph)
+  where
+    name = head args
+    syntaxOk = length args == 1
+    nodeExists = AAG.hasNode name graph
+    nodeCanBeCompromised = AAG.canBeCompromised name graph
+
+
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addNode args graph
   | not syntaxOk =
@@ -166,7 +179,10 @@ showHelp graph =
       ++ "  example\n"
       ++ "    - generates an example graph\n"
       ++ "  clear\n"
-      ++ "   - reset the graph",
+      ++ "   - reset the graph"
+      ++ "  crack <node name>\n"
+      ++ "   - to gain access to a node. But be careful. If you try to unlock a node," ++
+          "you cannot unlock yet, you will have to start all over agian!",
     graph
   )
 
@@ -201,6 +217,9 @@ invoke cmd
       clearGraph
   | "help" == cmd = do
       showHelp
+  | "crack" == cmd || "crack " `isPrefixOf` cmd = do
+      let args = extractArgs cmd 1
+      crack args
   | otherwise =
       unkownCommand cmd
 
