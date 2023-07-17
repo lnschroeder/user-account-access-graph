@@ -11,6 +11,7 @@ import qualified Graphviz as Representation
 import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 import Utils (info, query, warn)
+import Levels ( level2 )
 
 extractArgs :: String -> Int -> [String]
 extractArgs cmd l = drop l (words cmd)
@@ -235,11 +236,4 @@ queryOverwriteOrLoad filename = do
 
 queryGraphName :: IO ()
 queryGraphName = do
-  putStr (info "Enter the name of the graph:")
-  putStr (query " ")
-  hFlush stdout
-  filename <- getLine
-  fileExists <- doesFileExist (filename ++ ".aag")
-  if fileExists
-    then queryOverwriteOrLoad filename
-    else commandHandler filename []
+  commandHandler "test" Levels.level2

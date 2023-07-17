@@ -29,6 +29,7 @@ executable UserAccountAccessGraph
     CommandHandler
     Graphviz
     Utils
+    Levels
 
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
