@@ -11,23 +11,24 @@ import qualified Graphviz as Representation
 import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 import Utils (info, query, warn)
-import Levels ( level2 )
 
 extractArgs :: String -> Int -> [String]
 extractArgs cmd l = drop l (words cmd)
 
-crack :: [String] -> AAG.Graph -> (String, AAG.Graph)
-crack args graph
+getResettedGraph :: String -> AAG.Graph
+getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aag")
+
+crack :: [String] -> String -> AAG.Graph -> (String, AAG.Graph)
+crack args filename graph
   | not syntaxOk = ("TODO", graph)
   | not nodeExists = ("TODO", graph)
-  | not nodeCanBeCompromised =  ("You Failed. Start all over again.", Levels.level2)
+  | not nodeCanBeCompromised = ("You Failed. Start all over again.", getResettedGraph filename)
   | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User name graph)
   where
     name = head args
     syntaxOk = length args == 1
     nodeExists = AAG.hasNode name graph
     nodeCanBeCompromised = AAG.canBeCompromised name graph
-
 
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 addNode args graph
@@ -100,18 +101,18 @@ addAccess args graph
 
 removeAccess :: [String] -> AAG.Graph -> (String, AAG.Graph)
 removeAccess args graph
-  | not syntaxOk = 
+  | not syntaxOk =
       ( warn "Too few arguments provided",
         graph
       )
-  | not (null missingNodes) = 
-     ( warn "Node with name "
+  | not (null missingNodes) =
+      ( warn "Node with name "
           ++ head missingNodes
           ++ " does not exist. Access was not removed!",
         graph
       )
-  | not accessExists = 
-     ( warn "Access does not exists "
+  | not accessExists =
+      ( warn "Access does not exists "
           ++ show names
           ++ " for node "
           ++ name
@@ -181,8 +182,8 @@ showHelp graph =
       ++ "  clear\n"
       ++ "   - reset the graph"
       ++ "  crack <node name>\n"
-      ++ "   - to gain access to a node. But be careful. If you try to unlock a node," ++
-          "you cannot unlock yet, you will have to start all over agian!",
+      ++ "   - to gain access to a node. But be careful. If you try to unlock a node,"
+      ++ "you cannot unlock yet, you will have to start all over agian!",
     graph
   )
 
@@ -192,8 +193,8 @@ unkownCommand cmd graph =
     graph
   )
 
-invoke :: String -> AAG.Graph -> (String, AAG.Graph)
-invoke cmd
+invoke :: String -> String -> AAG.Graph -> (String, AAG.Graph)
+invoke cmd filename
   | "add node" == cmd || "add node " `isPrefixOf` cmd = do
       let args = extractArgs cmd 2
       addNode args
@@ -219,14 +220,14 @@ invoke cmd
       showHelp
   | "crack" == cmd || "crack " `isPrefixOf` cmd = do
       let args = extractArgs cmd 1
-      crack args
+      crack args filename
   | otherwise =
       unkownCommand cmd
 
 commandHandler :: String -> AAG.Graph -> IO ()
 commandHandler filename g = do
-  let aagFile = filename ++ ".aag"
-  let dotFile = filename ++ ".dot"
+  let aagFile = "current.aag"
+  let dotFile = "gui.dot"
 
   AAG.saveToFile aagFile g
   Representation.saveToFile dotFile g
@@ -234,25 +235,16 @@ commandHandler filename g = do
   putStr (query "> ")
   hFlush stdout
   cmd <- getLine
-  let (message, graph) = invoke cmd g
+  let (message, graph) = invoke cmd filename g
   putStrLn message
   commandHandler filename graph
 
-queryOverwriteOrLoad :: String -> IO ()
-queryOverwriteOrLoad filename = do
-  putStrLn (warn "File already exists: " ++ aagFilename)
-  putStr (info "Load (l) or overwrite (o):")
-  putStr (query " ")
-  hFlush stdout
-  arg <- getLine
-  case arg of
-    "o" -> commandHandler filename []
-    "l" -> g `seq` commandHandler filename g -- necessary to avoid `resource busy`
-    _ -> queryOverwriteOrLoad filename
-  where
-    aagFilename = filename ++ ".aag"
-    g = AAG.loadFromFile aagFilename
-
 queryGraphName :: IO ()
 queryGraphName = do
-  commandHandler "test" Levels.level2
+  fileExists <- doesFileExist "current.aag"
+  if fileExists
+    then currentGraph `seq` commandHandler "level2" currentGraph
+    else level2Graph `seq` commandHandler "level2" level2Graph
+  where
+    currentGraph = AAG.loadFromFile "current.aag"
+    level2Graph = getResettedGraph "level2"
