@@ -236,7 +236,7 @@ invoke cmd filename
 
 commandHandler :: String -> AAG.Graph -> IO ()
 commandHandler filename g = do
-  let aagFile = "current.aag"
+  let aagFile = ".current.aag"
   let dotFile = "gui.dot"
 
   AAG.saveToFile aagFile g
@@ -251,10 +251,10 @@ commandHandler filename g = do
 
 queryGraphName :: IO ()
 queryGraphName = do
-  fileExists <- doesFileExist "current.aag"
+  fileExists <- doesFileExist ".current.aag"
   if fileExists
     then currentGraph `seq` commandHandler "level2" currentGraph
     else level2Graph `seq` commandHandler "level2" level2Graph
   where
-    currentGraph = AAG.loadFromFile "current.aag"
+    currentGraph = AAG.loadFromFile ".current.aag"
     level2Graph = getResettedGraph "level2"
