@@ -10,7 +10,9 @@ module AccountAccessGraph
     resetAllNode,
     compromiseAllPossibleNodes,
     loadFromFile,
+    loadFromEncryptedFile,
     saveToFile,
+    saveToEncryptedFile,
     hasNode,
     hasNodes,
     hasAccess,
@@ -25,6 +27,7 @@ import Data.Maybe (fromJust, isJust, isNothing)
 import qualified Data.Set as Set
 import Debug.Trace (trace)
 import System.IO.Unsafe (unsafePerformIO)
+import Utils (decrypt, encrypt)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read)
 
@@ -132,10 +135,18 @@ compromiseAllPossibleNodes g
 saveToFile :: FilePath -> Graph -> IO ()
 saveToFile filePath graph = writeFile filePath (show graph)
 
+saveToEncryptedFile :: FilePath -> Graph -> IO ()
+saveToEncryptedFile filePath graph = writeFile filePath (Utils.encrypt (show graph) "ajwieornaviod")
+
 loadFromFile :: FilePath -> Graph
 loadFromFile filePath = unsafePerformIO $ do
   contents <- readFile filePath
   return (read contents)
+
+loadFromEncryptedFile :: FilePath -> Graph
+loadFromEncryptedFile filePath = unsafePerformIO $ do
+  contents <- readFile filePath
+  return (read (Utils.decrypt contents "ajwieornaviod"))
 
 example :: Graph
 example =
