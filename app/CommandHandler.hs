@@ -20,12 +20,15 @@ getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aa
 
 crackLevel2 :: String -> String -> AAG.Graph -> (String, AAG.Graph)
 crackLevel2 n filename graph
-  | n == "pw_Farmerama" && solve = ("You made it! Here is your username: password: schuhean", AAG.setIsCompromised AAG.Solved n graph)
-  | n == "pw_Farmerama" = ("Well done, come back later!", AAG.setIsCompromised AAG.Pending n graph)
-  | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User n graph)
+  | n == "pw_Farmerama" && solved_pw_Farmerama = ("You made it! Here is the username: klaus.schuhe.an & password: schuhean", AAG.setIsCompromised AAG.Solved n graph)
+  | n == "pw_Farmerama" = ("Well done, unlock " ++ show pw_Farmerama_dependencies ++ " first to continue here!", AAG.setIsCompromised AAG.Pending n graph)
+  | n == "Famerama" = ("Exceptional work, we are proud of you!", defaultSuccessGraph)
+  | otherwise = ("Congrats!", defaultSuccessGraph)
     where 
+      defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
       compromisableNodes = AAG.getAllCompromisedNodeNames graph
-      solve = all (`elem` compromisableNodes) ["YubiKey", "RaspberryPi"]
+      pw_Farmerama_dependencies = ["otp_Farmerama", "sicherheitscode_Farmerama", "Handvenen"]
+      solved_pw_Farmerama = all (`elem` compromisableNodes) pw_Farmerama_dependencies
 
 crack :: [String] -> String -> AAG.Graph -> (String, AAG.Graph)
 crack args filename graph
