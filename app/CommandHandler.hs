@@ -20,8 +20,8 @@ getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aa
 
 crackLevel2 :: String -> String -> AAG.Graph -> (String, AAG.Graph)
 crackLevel2 n filename graph
-  | n == "pw_Farmarama" && solve = ("You Won here is your password: schuhe.an", AAG.setIsCompromised AAG.Solved n graph)
-  | n == "pw_Farmarama" = ("Well done, come back later!", AAG.setIsCompromised AAG.Pending n graph)
+  | n == "pw_Farmerama" && solve = ("You made it! Here is your username: password: schuhean", AAG.setIsCompromised AAG.Solved n graph)
+  | n == "pw_Farmerama" = ("Well done, come back later!", AAG.setIsCompromised AAG.Pending n graph)
   | otherwise = ("Congrats!", AAG.setIsCompromised AAG.User n graph)
     where 
       compromisableNodes = AAG.getAllCompromisedNodeNames graph
