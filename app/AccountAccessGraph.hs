@@ -20,6 +20,7 @@ module AccountAccessGraph
     canBeCompromised,
     setIsCompromised,
     getAllCompromisedNodeNames,
+    isOpenQuest,
   )
 where
 
@@ -30,7 +31,7 @@ import Debug.Trace (trace)
 import System.IO.Unsafe (unsafePerformIO)
 import Utils (decrypt, encrypt)
 
-data CompromisionType = Automatic | User | NotCompromised | Pending | Solved deriving (Show, Eq, Read)
+data CompromisionType = Automatic | User | NotCompromised | Pending | Solved | OpenQuest deriving (Show, Eq, Read)
 
 data Node = Node
   { name :: String,
@@ -94,7 +95,7 @@ getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames = map name . filter isCompromised
 
 isCompromised :: Node -> Bool
-isCompromised n = NotCompromised /= compromisionType n
+isCompromised n = compromisionType n `notElem` [NotCompromised, OpenQuest]
 
 setIsCompromised :: CompromisionType -> String -> Graph -> Graph
 setIsCompromised c nname =
@@ -114,12 +115,24 @@ resetNode = setIsCompromised NotCompromised
 resetAllNode :: Graph -> Graph
 resetAllNode g = foldr resetNode g (getAllCompromisedNodeNames g)
 
+isOpenQuest :: String -> Graph -> Bool
+isOpenQuest nname g
+  | isNothing maybeNode = False
+  | isQuest = True
+  | otherwise = False
+  where
+    maybeNode = getNode nname g
+    isQuest = compromisionType (fromJust maybeNode) == OpenQuest
+
 canBeCompromised :: String -> Graph -> Bool
 canBeCompromised nname g
   | isNothing maybeNode = False
+  | isCompromised (fromJust maybeNode) = True
+  | isQuest = False
   | otherwise = any (`Set.isSubsetOf` Set.fromList selectedNodes) accesses
   where
     maybeNode = getNode nname g
+    isQuest = compromisionType (fromJust maybeNode) == OpenQuest
     accesses = protectedBy $ fromJust maybeNode
     selectedNodes = getAllCompromisedNodeNames g
 

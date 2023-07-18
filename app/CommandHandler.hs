@@ -18,11 +18,19 @@ extractArgs cmd l = drop l (words cmd)
 getResettedGraph :: String -> AAG.Graph
 getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aag")
 
+crackLevel2Quest :: [String] -> String -> String -> AAG.Graph -> (String, AAG.Graph)
+crackLevel2Quest solution n filename graph 
+  | n == "Eistruhe" && null solution = ("--- Quest Eistruhe ---\nUm an die ... TODO\nCrack it with 'crack <node_name> <quest solution>'", graph)
+  | n == "Eistruhe" && unwords solution == "hmmmm lecker lecker" = ("Congrats! You solved the quest.", AAG.setIsCompromised AAG.User n graph)
+  | otherwise = ("Incorrect. Try again", graph)
+
 crackLevel2 :: String -> String -> AAG.Graph -> (String, AAG.Graph)
 crackLevel2 n filename graph
+  | n == "Eistruhe" = ("You have already unlocked this Quest", graph)
   | n == "pw_Farmerama" && solved_pw_Farmerama = ("You made it! Here is the username: klaus.schuhe.an & password: schuhean", AAG.setIsCompromised AAG.Solved n graph)
   | n == "pw_Farmerama" = ("Well done, unlock " ++ show pw_Farmerama_dependencies ++ " first to continue here!", AAG.setIsCompromised AAG.Pending n graph)
   | n == "Famerama" = ("Exceptional work, we are proud of you!", defaultSuccessGraph)
+  | n == "Venenscanner" = ("Look, a your new Quest!" ++ "Eistruhe", AAG.setIsCompromised AAG.OpenQuest "Eistruhe" defaultSuccessGraph)
   | otherwise = ("Congrats!", defaultSuccessGraph)
     where 
       defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
@@ -32,8 +40,10 @@ crackLevel2 n filename graph
 
 crack :: [String] -> String -> AAG.Graph -> (String, AAG.Graph)
 crack args filename graph
-  | not syntaxOk = ("You can only crack one node at a time. Use 'crack <node_name>", graph)
+  | null args = ("Use 'crack <node_name> [quest solution]'", graph)
   | not nodeExists = ("Typo?", graph)
+  | not syntaxOk && not isQuest = ("You can only crack one node at a time. Use 'crack <node_name> [quest solution]'", graph)
+  | filename == "level2" && AAG.isOpenQuest name graph = crackLevel2Quest (tail args) name filename graph
   | not nodeCanBeCompromised = ("You Failed. Start all over again.", getResettedGraph filename)
   | filename == "level2" = crackLevel2 name filename graph
   | otherwise = ("Level not implemented yet:" ++ filename, AAG.setIsCompromised AAG.User name graph)
@@ -41,6 +51,7 @@ crack args filename graph
     syntaxOk = length args == 1
     name = head args
     nodeExists = AAG.hasNode name graph
+    isQuest = AAG.isOpenQuest name graph
     nodeCanBeCompromised = AAG.canBeCompromised name graph
 
 addNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
