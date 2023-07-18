@@ -22,6 +22,8 @@ crackLevel2Quest :: [String] -> String -> String -> AAG.Graph -> (String, AAG.Gr
 crackLevel2Quest solution n filename graph 
   | n == "Eistruhe" && null solution = ("--- Quest Eistruhe ---\nUm an die ... TODO\nCrack it with 'crack <node_name> <quest solution>'", graph)
   | n == "Eistruhe" && unwords solution == "hmmmm lecker lecker" = ("Congrats! You solved the quest.", AAG.setIsCompromised AAG.User n graph)
+  | n == "Augenarztpraxis_Dr.Keuch" && null solution = ("--- Quest Augenarztpraxis_Dr.Keuch ---\nTODO\nUse the following format: Framstag 18:42-24:30\nCrack it with 'crack <node_name> <quest solution>'", graph)
+  | n == "Augenarztpraxis_Dr.Keuch" && unwords solution == "Freitag 12:00-13:00" = ("Congrats! You solved the quest.", AAG.setIsCompromised AAG.User n graph)
   | otherwise = ("Incorrect. Try again", graph)
 
 crackLevel2 :: String -> String -> AAG.Graph -> (String, AAG.Graph)
@@ -30,7 +32,8 @@ crackLevel2 n filename graph
   | n == "pw_Farmerama" && solved_pw_Farmerama = ("You made it! Here is the username: klaus.schuhe.an & password: schuhean", AAG.setIsCompromised AAG.Solved n graph)
   | n == "pw_Farmerama" = ("Well done, unlock " ++ show pw_Farmerama_dependencies ++ " first to continue here!", AAG.setIsCompromised AAG.Pending n graph)
   | n == "Famerama" = ("Exceptional work, we are proud of you!", defaultSuccessGraph)
-  | n == "Venenscanner" = ("Look, a your new Quest!" ++ "Eistruhe", AAG.setIsCompromised AAG.OpenQuest "Eistruhe" defaultSuccessGraph)
+  | n == "Venenscanner" = ("Look, a your new Quest: Eistruhe", AAG.setIsCompromised AAG.OpenQuest "Eistruhe" defaultSuccessGraph)
+  | n == "pw_Partyheld_Mail_Post-it" = ("Look, a your new Quest: Augenarztpraxis_Dr.Keuch", AAG.setIsCompromised AAG.OpenQuest "Augenarztpraxis_Dr.Keuch" defaultSuccessGraph)
   | otherwise = ("Congrats!", defaultSuccessGraph)
     where 
       defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
