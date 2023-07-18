@@ -120,17 +120,17 @@ startScreen =
     ++ "\t\"DILMA?\" [shape = doubleoctagon;style = \"bold,filled\";fillcolor = orange;];\n"
     ++ "}"
 
-printDotContent :: AAG.Graph -> String
-printDotContent g =
+printDotContent :: AAG.Graph -> Bool -> String
+printDotContent g legend =
   "digraph {\n"
-    ++ printLegend graph
+    ++ (if legend then printLegend graph else "" )
     ++ "\n\n"
     ++ printGraph graph
     ++ "\n}"
   where
     graph = toGraph g
 
-saveToFile :: FilePath -> AAG.Graph -> IO ()
-saveToFile path graph
+saveToFile :: FilePath -> AAG.Graph -> Bool -> IO ()
+saveToFile path graph legend
   | null graph = writeFile path startScreen
-  | otherwise = writeFile path (printDotContent graph)
+  | otherwise = writeFile path (printDotContent graph legend)

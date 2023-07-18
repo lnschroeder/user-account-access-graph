@@ -1,5 +1,5 @@
 module CommandHandler
-  ( queryGraphName,
+  ( queryTutorial,
   )
 where
 
@@ -8,6 +8,7 @@ import Data.List (isPrefixOf, isSuffixOf)
 import Data.List.Split (splitOn)
 import Data.Maybe (isNothing)
 import qualified Graphviz as Representation
+import Levels
 import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 import Utils (info, query, warn)
@@ -16,10 +17,11 @@ extractArgs :: String -> Int -> [String]
 extractArgs cmd l = drop l (words cmd)
 
 getResettedGraph :: String -> AAG.Graph
+getResettedGraph "tutorial" = Levels.tutorial1
 getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aag")
 
 crackLevel2Quest :: [String] -> String -> String -> AAG.Graph -> (String, AAG.Graph)
-crackLevel2Quest solution n filename graph 
+crackLevel2Quest solution n filename graph
   | n == "Eistruhe" && null solution = ("--- Quest Eistruhe ---\nUm an die ... TODO\nCrack it with 'crack <node_name> <quest solution>'", graph)
   | n == "Eistruhe" && unwords solution == "hmmmm lecker lecker" = ("Congrats! You solved the quest.", AAG.setIsCompromised AAG.User n graph)
   | n == "Augenarztpraxis_Dr.Keuch" && null solution = ("--- Quest Augenarztpraxis_Dr.Keuch ---\nTODO\nUse the following format: Framstag 18:42-24:30\nCrack it with 'crack <node_name> <quest solution>'", graph)
@@ -41,11 +43,27 @@ crackLevel2 n filename graph
   | n == "Protonmail" = ("Look, a your new Quest: Meine_lieblings_Frage", AAG.setIsCompromised AAG.OpenQuest "Meine_lieblings_Frage" defaultSuccessGraph)
   | n == "Finger" = ("Look, a your new Quest: Name_meines_ersten_Haustiers", AAG.setIsCompromised AAG.OpenQuest "Name_meines_ersten_Haustiers" defaultSuccessGraph)
   | otherwise = ("Congrats!", defaultSuccessGraph)
-    where 
-      defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
-      compromisableNodes = AAG.getAllCompromisedNodeNames graph
-      pw_Farmerama_dependencies = ["otp_Farmerama", "sicherheitscode_Farmerama", "Handvenen"]
-      solved_pw_Farmerama = all (`elem` compromisableNodes) pw_Farmerama_dependencies
+  where
+    defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
+    compromisableNodes = AAG.getAllCompromisedNodeNames graph
+    pw_Farmerama_dependencies = ["otp_Farmerama", "sicherheitscode_Farmerama", "Handvenen"]
+    solved_pw_Farmerama = all (`elem` compromisableNodes) pw_Farmerama_dependencies
+
+crackTutorialQuest :: [String] -> String -> String -> AAG.Graph -> (String, AAG.Graph)
+crackTutorialQuest solution n filename graph
+  | n == "pw_Netflix" && null solution = ("--- Quest pw_Netflix ---\nPssst: the password is 12345\nCrack it with 'crack pw_Netflix 12345'", graph)
+  | n == "pw_Netflix" && unwords solution == "12345" = ("Congrats! You solved the quest. Now you can access Netflix", AAG.setIsCompromised AAG.User n graph)
+  | otherwise = ("Incorrect. Try again", graph)
+
+crackTutorial :: String -> String -> AAG.Graph -> (String, AAG.Graph)
+crackTutorial n filename graph
+  | n == "Mail" = ("Congrats! You have cracked the Mail Account\nNow get access to Netflix.\nNetflix is protected with two factors. However, the otp is already cracked and the pw_Netflix can be guessed.\nBoth arrows to Netflix have the same color i.e. they both need to be cracked first to get access to Netflix.\n\nJust give it a try!", Levels.tutorial2)
+  | n == "Netflix" = ("Congrats! You have cracked the Netflix Account\nNow you need to get access to Amazon. \nUsually you wouldn't be able to get access because you don't have the pw_Amazon.\nBut you can use the 'forgot password' option and the cracked Mail account to gain access to Amazon without the pw_Amazon", Levels.tutorial3)
+  | n == "Amazon" = ("Congrats! You have cracked the Amazon Account. Now you are on your own try to get access to Hetzner", Levels.tutorial4)
+  | n == "Hetzner" = ("Congrats! You have finished the Tutorial. Now you should be prepared to start the real challenge. CTRL+C this and start the Application again and select (s)!", Levels.tutorial1)
+  | otherwise = ("Congrats!", defaultSuccessGraph)
+  where
+    defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
 
 crack :: [String] -> String -> AAG.Graph -> (String, AAG.Graph)
 crack args filename graph
@@ -53,8 +71,11 @@ crack args filename graph
   | not nodeExists = ("Typo?", graph)
   | not syntaxOk && not isQuest = ("You can only crack one node at a time. Use 'crack <node_name> [quest solution]'", graph)
   | filename == "level2" && AAG.isOpenQuest name graph = crackLevel2Quest (tail args) name filename graph
+  | filename == "tutorial" && AAG.isOpenQuest name graph = crackTutorialQuest (tail args) name filename graph
+  | filename == "tutorial" && not nodeCanBeCompromised = ("You didn't had the ability to crack " ++ name ++ " yet. You will have to start from the beginnig. So better be careful next time :|", getResettedGraph filename)
   | not nodeCanBeCompromised = ("You Failed. Start all over again.", getResettedGraph filename)
   | filename == "level2" = crackLevel2 name filename graph
+  | filename == "tutorial" = crackTutorial name filename graph
   | otherwise = ("Level not implemented yet:" ++ filename, AAG.setIsCompromised AAG.User name graph)
   where
     syntaxOk = length args == 1
@@ -262,18 +283,32 @@ commandHandler filename g = do
   let aagFile = ".current.aag"
   let dotFile = "gui.dot"
 
-  AAG.saveToFile aagFile g
-  Representation.saveToFile dotFile g
+  ( if filename /= "tutorial"
+      then AAG.saveToFile aagFile g
+      else return ()
+    )
+  Representation.saveToFile dotFile g (filename /= "tutorial")
 
   putStr (query "> ")
   hFlush stdout
   cmd <- getLine
   let (message, graph) = invoke cmd filename g
-  putStrLn message
+  putStrLn (info message)
   commandHandler filename graph
 
-queryGraphName :: IO ()
-queryGraphName = do
+queryOverwriteOrLoad :: String -> IO ()
+queryOverwriteOrLoad filename = do
+  arg <- getLine
+  case arg of
+    "o" -> commandHandler filename []
+    "l" -> g `seq` commandHandler filename g -- necessary to avoid `resource busy`
+    _ -> queryOverwriteOrLoad filename
+  where
+    aagFilename = filename ++ ".aag"
+    g = AAG.loadFromFile aagFilename
+
+startGame :: IO ()
+startGame = do
   fileExists <- doesFileExist ".current.aag"
   if fileExists
     then currentGraph `seq` commandHandler "level2" currentGraph
@@ -281,3 +316,24 @@ queryGraphName = do
   where
     currentGraph = AAG.loadFromFile ".current.aag"
     level2Graph = getResettedGraph "level2"
+
+startTutorial :: IO ()
+startTutorial = do
+  putStrLn $ info "Open the generated gui.dot file with an .dot preview application"
+  putStrLn $ info "I reccommend: https://marketplace.visualstudio.com/items?itemName=tintinweb.graphviz-interactive-preview\nIt's a bit buggy but reopening the Preview helps"
+  putStrLn $ info "You should see a User Account Access Graph: https://dl.acm.org/doi/10.1145/3319535.3354193\n\n"
+  putStrLn $ info "The only command you will need is 'crack'"
+  tutorialGraph `seq` commandHandler "tutorial" tutorialGraph
+  where
+    tutorialGraph = getResettedGraph "tutorial"
+
+queryTutorial :: IO ()
+queryTutorial = do
+  putStr (info "Start tutorial (t) or start game (s):")
+  putStr (query " ")
+  hFlush stdout
+  arg <- getLine
+  case arg of
+    "t" -> startTutorial
+    "s" -> startGame
+    _ -> queryTutorial

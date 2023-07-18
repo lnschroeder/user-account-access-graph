@@ -1,6 +1,5 @@
-import CommandHandler (queryGraphName)
+import CommandHandler (queryTutorial)
 
 main :: IO ()
 main = do
-  putStrLn "\ESC[32mWelcome to DILMA (Did I Lose My Account?)!"
-  CommandHandler.queryGraphName
+  CommandHandler.queryTutorial
