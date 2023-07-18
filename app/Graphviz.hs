@@ -93,23 +93,24 @@ printGraph g =
     ++ "\";];\n\n"
     ++ printNodes g
 
-getAllColors :: Graph -> Set.Set Int
-getAllColors graph = Set.fromList $ concatMap (map color . protectedBy) graph
-
-printColor :: Int -> String
-printColor c = "\t\t\"" ++ show c ++ "\" [color = \"" ++ show c ++ "\";];"
-
-printColors :: Set.Set Int -> String
-printColors cs = intercalate "\n" (map printColor (sort $ Set.toList cs))
-
 printLegend :: Graph -> String
 printLegend graph =
   "\t// Legend\n"
     ++ "\tsubgraph {\n"
-    ++ "\t\tnode [colorscheme = \""
-    ++ colorscheme
-    ++ "\"; style = filled;];\n"
-    ++ printColors (getAllColors graph)
+    ++ "\t\t\"Node\nReady to be cracked\" "
+    ++ printCompromisionType NotCompromised
+    ++ "\n"
+    ++ "\t\t\"Quest\nReady to be cracked\" "
+    ++ printCompromisionType OpenQuest
+    ++ "\n"
+    ++ "\t\t\"Cracked node\" "
+    ++ printCompromisionType User
+    ++ "\n"
+    ++ "\t\t\"Cracked node with secret\nnot visible yet\" "
+    ++ printCompromisionType Pending
+    ++ "\n"
+    ++ "\t\t\"Cracked node with secret\nvisible with 'crack <node name>'\" "
+    ++ printCompromisionType Solved
     ++ "\n"
     ++ "\t}"
 
@@ -122,6 +123,8 @@ startScreen =
 printDotContent :: AAG.Graph -> String
 printDotContent g =
   "digraph {\n"
+    ++ printLegend graph
+    ++ "\n\n"
     ++ printGraph graph
     ++ "\n}"
   where
