@@ -18,7 +18,7 @@ extractArgs cmd l = drop l (words cmd)
 
 getResettedGraph :: String -> AAG.Graph
 getResettedGraph "tutorial" = Levels.tutorial1
-getResettedGraph filename = AAG.loadFromFile ("persistence/" ++ filename ++ ".aag")
+getResettedGraph "level2" = Levels.level2
 
 crackLevel2Quest :: [String] -> String -> String -> AAG.Graph -> (String, AAG.Graph)
 crackLevel2Quest solution n filename graph
@@ -65,7 +65,7 @@ crackTutorial n filename graph
   | n == "Mail" = ("Congrats! You have cracked the Mail Account\nNow get access to Netflix.\nNetflix is protected with two factors. However, the otp is already cracked and the pw_Netflix can be guessed.\nBoth arrows to Netflix have the same color i.e. they both need to be cracked first to get access to Netflix.\n\nJust give it a try!", Levels.tutorial2)
   | n == "Netflix" = ("Congrats! You have cracked the Netflix Account\nNow you need to get access to Amazon. \nUsually you wouldn't be able to get access to it because you don't have the pw_Amazon.\nBut do you notice the arrow color?\nThere is another way to get to the Amazon account using the 'I forgot my password' option. Fot this the cracked Mail account is enough to gain access to Amazon without the pw_Amazon", Levels.tutorial3)
   | n == "Amazon" = ("Congrats! You have cracked the Amazon Account. Now you are on your own try to get access to Hetzner", Levels.tutorial4)
-  | n == "Hetzner" = ("Congrats! You have finished the Tutorial. Now you should be prepared to start the real challenge. CTRL+C this and start the Application again and select (s)!", Levels.tutorial1)
+  | n == "Hetzner" = ("Congrats! You have finished the Tutorial. Now you should be prepared to start the real challenge. CTRL+C this and start the Application again and select (s)!", graph)
   | otherwise = ("Congrats!", defaultSuccessGraph)
   where
     defaultSuccessGraph = AAG.setIsCompromised AAG.User n graph
