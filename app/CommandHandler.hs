@@ -268,7 +268,7 @@ commandHandler filename g = do
   let dotFile = "gui.dot"
 
   ( if filename /= "tutorial"
-      then AAG.saveToFile aagFile g
+      then AAG.saveToEncryptedFile aagFile g
       else return ()
     )
   Representation.saveToFile dotFile g (filename /= "tutorial")
@@ -289,7 +289,7 @@ queryOverwriteOrLoad filename = do
     _ -> queryOverwriteOrLoad filename
   where
     aagFilename = filename ++ ".aag"
-    g = AAG.loadFromFile aagFilename
+    g = AAG.loadFromEncryptedFile aagFilename
 
 startGame :: IO ()
 startGame = do
@@ -304,7 +304,7 @@ startGame = do
     then currentGraph `seq` commandHandler "level2" currentGraph
     else level2Graph `seq` commandHandler "level2" level2Graph
   where
-    currentGraph = AAG.loadFromFile ".current.aag"
+    currentGraph = AAG.loadFromEncryptedFile ".current.aag"
     level2Graph = getResettedGraph "level2"
 
 startTutorial :: IO ()
