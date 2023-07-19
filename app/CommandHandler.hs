@@ -39,7 +39,7 @@ crackLevel2 n filename graph
   | n == "pw_Farmerama" = ("Well done, unlock " ++ show pw_Farmerama_dependencies ++ " first to continue here!", AAG.setIsCompromised AAG.Pending n graph)
   | n == "Farmerama" = ("Exceptional work, we are proud of you! Here is the username: klaus.schuhe.an", AAG.setIsCompromised AAG.Solved n graph)
   | n == "Venenscanner" = ("Look, a your new Quest: Eistruhe", AAG.setIsCompromised AAG.OpenQuest "Eistruhe" defaultSuccessGraph)
-  | n == "Glass" = ("Oh, no, you broke the Glas :o", defaultSuccessGraph)
+  | n == "Glas" = ("Oh, no, you broke the Glas :o", defaultSuccessGraph)
   | n == "Schlüsselbund" = ("Damn, in his Hosentasche was his Schlüsselbund - what a successful pee on the toilet", defaultSuccessGraph)
   | n == "Wohnung" = ("His flat looks like real farmerama fan boy flat. It's in Köpenick btw. because he was in Berlin for a Klassenfahrt in his childhood and enjoyed his time there so much, that he moved there now.", defaultSuccessGraph)
   | n == "Finger" = ("Lucky you, Klaus Sommerfeldt's fingerprint is still visible on the Glas", defaultSuccessGraph)
