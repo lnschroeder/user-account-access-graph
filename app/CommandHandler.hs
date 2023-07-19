@@ -254,29 +254,8 @@ unkownCommand cmd graph =
 
 invoke :: String -> String -> AAG.Graph -> (String, AAG.Graph)
 invoke cmd filename
-  | "add node" == cmd || "add node " `isPrefixOf` cmd = do
-      let args = extractArgs cmd 2
-      addNode args
-  | "add access" == cmd || "add access " `isPrefixOf` cmd = do
-      let args = extractArgs cmd 2
-      addAccess args
-  | "remove node" == cmd || "remove node " `isPrefixOf` cmd = do
-      let args = extractArgs cmd 2
-      removeNode args
-  | "remove access" == cmd || "remove access " `isPrefixOf` cmd = do
-      let args = extractArgs cmd 2
-      removeAccess args
-  | "compromise" == cmd || "compromise " `isPrefixOf` cmd = do
-      let args = extractArgs cmd 1
-      compromiseNodes args
-  | "reset" == cmd = do
-      resetGraph
-  | "example" == cmd = do
-      loadExampleGraph
   | "clear" == cmd = do
       clearGraph
-  | "help" == cmd = do
-      showHelp
   | "crack" == cmd || "crack " `isPrefixOf` cmd = do
       let args = extractArgs cmd 1
       crack args filename
