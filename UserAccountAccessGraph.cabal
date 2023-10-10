@@ -33,7 +33,7 @@ executable UserAccountAccessGraph
   -- LANGUAGE extensions used by modules in this package.
   -- other-extensions:
   build-depends:
-    , base                ^>=4.16.4.0
+    , base                ^>=4.17.2.0
     , containers          ^>=0.6.7
     , directory           ^>=1.3.6.2
     , split               ^>=0.2.3.5
