@@ -1,3 +1,7 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE OverloadedStrings #-}
+
 module AccountAccessGraph
   ( CompromisionType (..),
     Node (..),
@@ -18,20 +22,23 @@ module AccountAccessGraph
   )
 where
 
+import Data.Aeson (FromJSON, ToJSON)
 import Data.List (find)
 import Data.Maybe (fromJust, isJust, isNothing)
 import qualified Data.Set as Set
 import Debug.Trace (trace)
+import GHC.Generics
+import System.Directory (doesFileExist)
 import System.IO.Unsafe (unsafePerformIO)
 
-data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read)
+data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read, Generic, ToJSON, FromJSON)
 
 data Node = Node
   { name :: String,
     protectedBy :: Set.Set (Set.Set String),
     compromisionType :: CompromisionType
   }
-  deriving (Show, Eq, Read)
+  deriving (Show, Eq, Read, Generic, ToJSON, FromJSON)
 
 type Graph = [Node]
 
