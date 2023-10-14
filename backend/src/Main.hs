@@ -1,10 +1,11 @@
 import CommandHandler (queryGraphName)
 import RESTController (controller)
-import System.Environment
+import System.Environment (getArgs)
+import Utils (query)
 
 main :: IO ()
 main = do
-  putStrLn "\ESC[32mWelcome to DILMA (Did I Lose My Account?)!"
+  putStrLn $ query "Welcome to DILMA (Did I Lose My Account?)!"
   args <- getArgs
   case args of
     ["rest"] -> RESTController.controller

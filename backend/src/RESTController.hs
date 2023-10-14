@@ -10,6 +10,7 @@ import Control.Monad.IO.Class (liftIO) -- Import liftIO
 import Data.List.Split
 import qualified Graphviz as Representation
 import Network.HTTP.Types.Status (notFound404)
+import Postgres (connectToDatabase)
 import System.Directory (doesFileExist)
 import Web.Scotty
 
@@ -20,6 +21,7 @@ getGraph aagFilename
 
 controller :: IO ()
 controller = do
+  Postgres.connectToDatabase
   scotty 8080 $ do
     get "/graph/:name" $ do
       filename <- captureParam "name"
