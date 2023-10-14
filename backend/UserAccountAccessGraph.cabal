@@ -10,7 +10,7 @@ homepage:
 -- A URL where users can report bugs.
 -- bug-reports:
 license:
-author:             Urs Kahmann & Niklas Schröder
+author:             Niklas Schröder & Urs Kahmann
 maintainer:         33390735+lnschroeder@users.noreply.github.com
 
 -- A copyright notice.
@@ -28,6 +28,7 @@ executable UserAccountAccessGraph
     AccountAccessGraph
     CommandHandler
     Graphviz
+    Postgres
     RESTController
     Utils
 
@@ -39,9 +40,10 @@ executable UserAccountAccessGraph
     , containers          ^>=0.6.7
     , directory           ^>=1.3.6.2
     , http-types          ^>=0.12.3
+    , postgresql-simple   ^>=0.7.0.0
     , scotty              ^>=0.20.1
     , split               ^>=0.2.3.5
     , text-format-simple  ^>=1.1.0
 
-  hs-source-dirs:   app
+  hs-source-dirs:   src
   default-language: Haskell2010

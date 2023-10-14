@@ -123,6 +123,10 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-graph.dot
-
 dist-newstyle/
+
+# VSCode workspace settings
+# used for fixing HLS issues with VSC's Haskell extension
+# see: https://stackoverflow.com/questions/76677656/haskell-language-server-starting-in-wrong-folder-in-vs-code/77293458#77293458
+backend/.vscode/settings.json
+user-account-access-graph.code-workspace
