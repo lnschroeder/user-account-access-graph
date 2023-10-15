@@ -11,6 +11,7 @@ import qualified Graphviz as Representation
 import System.Directory (doesFileExist)
 import System.IO (hFlush, stdout)
 import Utils (info, query, warn)
+import System.Directory.Internal.Prelude (fromMaybe)
 
 extractArgs :: String -> Int -> [String]
 extractArgs cmd l = drop l (words cmd)
@@ -231,7 +232,7 @@ queryOverwriteOrLoad filename = do
     _ -> queryOverwriteOrLoad filename
   where
     aagFilename = filename ++ ".aag"
-    g = AAG.loadFromFile aagFilename
+    g = fromMaybe [] $ AAG.loadFromFile aagFilename
 
 queryGraphName :: IO ()
 queryGraphName = do

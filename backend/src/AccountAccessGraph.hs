@@ -13,6 +13,7 @@ module AccountAccessGraph
     compromiseNodes,
     resetAllNode,
     compromiseAllPossibleNodes,
+    loadFromString,
     loadFromFile,
     saveToFile,
     hasNode,
@@ -30,6 +31,7 @@ import Debug.Trace (trace)
 import GHC.Generics
 import System.Directory (doesFileExist)
 import System.IO.Unsafe (unsafePerformIO)
+import Text.Read (readMaybe)
 
 data CompromisionType = Automatic | User | NotCompromised deriving (Show, Eq, Read, Generic, ToJSON, FromJSON)
 
@@ -45,6 +47,8 @@ type Graph = [Node]
 nodeHasName :: Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
 
+-- TODO rename to _addNode and add a function addNode that checks if the node already
+--      exists (same for other functions) returning Either String Graph or Maybe Graph
 addNode :: String -> Graph -> Graph
 addNode nname g = g ++ [Node nname Set.empty NotCompromised]
 
@@ -137,10 +141,17 @@ compromiseAllPossibleNodes g
 saveToFile :: FilePath -> Graph -> IO ()
 saveToFile filePath graph = writeFile filePath (show graph)
 
-loadFromFile :: FilePath -> Graph
-loadFromFile filePath = unsafePerformIO $ do
-  contents <- readFile filePath
-  return (read contents)
+loadFromString :: String -> Maybe Graph
+loadFromString = readMaybe
+
+loadFromFile :: FilePath -> Maybe Graph
+loadFromFile filePath = loadFromString fileContent
+  where
+    fileContent = unsafePerformIO $ do
+      fileExists <- doesFileExist filePath
+      if fileExists
+        then readFile filePath
+        else return ""
 
 example :: Graph
 example =

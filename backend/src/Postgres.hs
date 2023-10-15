@@ -2,11 +2,14 @@
 
 module Postgres
   ( connectToDatabase,
+    readGraph,
+    upsertExample,
+    upsertGraph,
   )
 where
 
-import qualified AccountAccessGraph as AAG 
-import Data.Int ( Int64 )
+import qualified AccountAccessGraph as AAG
+import Data.Int (Int64)
 import Database.PostgreSQL.Simple
 
 localPG :: ConnectInfo
@@ -19,17 +22,17 @@ localPG =
       connectPassword = "postgres"
     }
 
-readExample :: Connection -> String -> IO [Only String]
-readExample conn graphName = query conn "SELECT graph_string FROM graph WHERE name = ?" $ Only graphName
+readGraph :: Connection -> String -> IO [Only String]
+readGraph conn graphName = query conn "SELECT graph_string FROM graph WHERE name = ?" (Only graphName)
+
+upsertGraph :: Connection -> String -> AAG.Graph -> IO Int64
+upsertGraph conn graphName graph = execute conn sql_query (graphName, show graph)
+  where                             
+    sql_query = "INSERT INTO graph (name, graph_string) VALUES (?, ?) ON CONFLICT (name) DO UPDATE SET graph_string = EXCLUDED.graph_string" 
 
 upsertExample :: Connection -> IO Int64
-upsertExample conn = execute conn sql_query $ Only (show AAG.example)
-  where
-    sql_query = "INSERT INTO graph (name, graph_string) VALUES ('example', ?) ON CONFLICT (name) DO UPDATE SET graph_string = EXCLUDED.graph_string"
+upsertExample conn = upsertGraph conn "example" AAG.example
 
-connectToDatabase :: IO ()
+connectToDatabase :: IO Connection
 connectToDatabase = do
-  conn <- connect localPG
-  putStrLn "Connected to database"
-  upsertExample conn
-  readExample conn "example" >>= print
+  connect localPG

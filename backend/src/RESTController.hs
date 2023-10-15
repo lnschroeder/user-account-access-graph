@@ -7,47 +7,82 @@ where
 
 import qualified AccountAccessGraph as AAG
 import Control.Monad.IO.Class (liftIO) -- Import liftIO
-import Data.List.Split
+import Data.Int (Int64)
+import Data.List.Split ( splitOn )
+import Database.PostgreSQL.Simple.Types (fromOnly)
 import qualified Graphviz as Representation
+import Network.HTTP.Types (internalServerError500, methodNotAllowed405, ok200)
 import Network.HTTP.Types.Status (notFound404)
-import Postgres (connectToDatabase)
+import Postgres (connectToDatabase, readGraph, upsertExample, upsertGraph)
 import System.Directory (doesFileExist)
 import Web.Scotty
-
-getGraph :: String -> AAG.Graph
-getGraph aagFilename
-  | aagFilename == "example.aag" = AAG.example
-  | otherwise = AAG.loadFromFile aagFilename
+import Data.Maybe (isNothing, fromJust)
 
 controller :: IO ()
 controller = do
-  Postgres.connectToDatabase
+  conn <- Postgres.connectToDatabase
+  Postgres.upsertExample conn
+  putStrLn "Connected to database"
   scotty 8080 $ do
-    get "/graph/:name" $ do
-      filename <- captureParam "name"
-      let aagFilename = filename ++ ".aag"
-      fileExists <- liftIO $ doesFileExist aagFilename
-      if fileExists || filename == "example"
+    get "/graph/:graphName" $ do
+      graphName <- captureParam "graphName"
+      graphs <- liftIO $ Postgres.readGraph conn graphName
+      let graph = AAG.loadFromString (fromOnly $ head graphs)
+      if isNothing graph
         then do
-          json $ getGraph aagFilename
+          status internalServerError500
+          json ("Graph '" ++ graphName ++ "' invalid format" :: String)
         else do
-          status notFound404
-          json ("File not found: " ++ aagFilename)
-    post "/graph/:name" $ do
-      filename <- captureParam "name"
-      g <- jsonData :: ActionM AAG.Graph -- TODO: why ActionM?
-      liftIO $ AAG.saveToFile (filename ++ ".aag") g
-      liftIO $ Representation.saveToFile (filename ++ ".dot") g
-      json ("nodes in graph" ++ show (length g))
-    post "/node/:name" $ do
-      nodename <- captureParam "name"
-      g <- jsonData :: ActionM AAG.Graph
-      let g' = AAG.addNode nodename g
-      json g'
-    post "/access/:name" $ do
-      nodename <- captureParam "name"
-      protectors <- queryParam "protectors"
-      g <- jsonData :: ActionM AAG.Graph
-      let ps = splitOn "," protectors
-      let g' = AAG.addProtectedBy nodename ps g
-      json g'
+          status ok200
+          json (fromJust graph :: AAG.Graph)
+    put "/graph/:graphName" $ do
+      graphName <- captureParam "graphName"
+      if graphName == "example"
+        then do
+          status methodNotAllowed405
+          json ("Graph 'example' is read-only" :: String)
+        else do
+          g <- jsonData :: ActionM AAG.Graph
+          graphData <- liftIO $ Postgres.upsertGraph conn graphName g
+          status ok200
+          json (graphData :: Int64)
+    put "/graph/:graphName/node/:nodeName" $ do
+      graphName <- captureParam "graphName"
+      nodeName <- captureParam "nodeName"
+      if graphName == "example"
+      then do
+        status methodNotAllowed405
+        json ("Graph 'example' is read-only" :: String)
+      else do
+        graphs <- liftIO $ Postgres.readGraph conn graphName
+        let graph = AAG.loadFromString (fromOnly $ head graphs)
+        if isNothing graph
+        then do
+          status internalServerError500
+          json ("Graph '" ++ graphName ++ "' invalid format" :: String)
+        else do
+          let graph' = AAG.addNode nodeName (fromJust graph)
+          graphData <- liftIO $ Postgres.upsertGraph conn graphName graph'
+          status ok200
+          json (graphData :: Int64) -- TODO return graph
+    put "/graph/:graphName/access/:nodeName" $ do
+      graphName <- captureParam "graphName"
+      nodeName <- captureParam "nodeName"
+      protectorList <- queryParam "protectors"
+      let protectors = splitOn "," protectorList
+      if graphName == "example"
+      then do
+        status methodNotAllowed405
+        json ("Graph 'example' is read-only" :: String)
+      else do
+        graphs <- liftIO $ Postgres.readGraph conn graphName
+        let graph = AAG.loadFromString (fromOnly $ head graphs)
+        if isNothing graph
+        then do
+          status internalServerError500
+          json ("Graph '" ++ graphName ++ "' invalid format" :: String)
+        else do
+          let graph' = AAG.addProtectedBy nodeName protectors (fromJust graph)
+          graphData <- liftIO $ Postgres.upsertGraph conn graphName graph'
+          status ok200
+          json (graphData :: Int64) -- TODO return graph
