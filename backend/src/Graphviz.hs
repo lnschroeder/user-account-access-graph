@@ -1,5 +1,6 @@
 module Graphviz
   ( saveToFile,
+    printDotContent,
   )
 where
 

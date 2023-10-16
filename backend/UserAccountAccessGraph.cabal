@@ -43,6 +43,7 @@ executable UserAccountAccessGraph
     , postgresql-simple   ^>=0.7.0.0
     , scotty              ^>=0.20.1
     , split               ^>=0.2.3.5
+    , text                ^>=2.0.2
     , text-format-simple  ^>=1.1.0
 
   hs-source-dirs:   src
