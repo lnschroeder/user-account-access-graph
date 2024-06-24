@@ -34,6 +34,31 @@ addNode args graph
     syntaxOk = length args == 1
     nodeExists = AAG.hasNode name graph
 
+renameNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
+renameNode args graph
+  | not syntaxOk =
+      ( warn "Rename one node at a time and don't use spaces",
+        graph
+      )
+  | not nodeExists =
+      ( warn "Node " ++ name ++ " not in Graph",
+        graph
+      )
+  | nodeExists && newNameExists =
+      ( warn "Node " ++ newName ++ " already exists",
+        graph
+      )
+  | otherwise =
+      ( info "Renamed node " ++ name ++ " to " ++ newName,
+        AAG.renameNode name newName graph
+      )
+  where
+    syntaxOk = length args == 2
+    name = head args
+    newName = args !! 1
+    nodeExists = AAG.hasNode name graph
+    newNameExists = AAG.hasNode newName graph
+
 removeNode :: [String] -> AAG.Graph -> (String, AAG.Graph)
 removeNode args graph
   | not syntaxOk =
@@ -152,6 +177,8 @@ showHelp graph =
   ( info "available commands:\n"
       ++ "  add node <node name>\n"
       ++ "    - adds a new node to the graph\n"
+      ++ "  rename node <node name> <new node name>\n"
+      ++ "    - renames a node by its name\n"
       ++ "  remove node <node name>\n"
       ++ "    - removes an existing node from the graph\n"
       ++ "  add access <node name> <protector1> <protector2> ...\n"
@@ -183,6 +210,9 @@ invoke cmd
   | "add access" == cmd || "add access " `isPrefixOf` cmd = do
       let args = extractArgs cmd 2
       addAccess args
+  | "rename node" == cmd || "rename node " `isPrefixOf` cmd = do
+      let args = extractArgs cmd 2
+      renameNode args
   | "remove node" == cmd || "remove node " `isPrefixOf` cmd = do
       let args = extractArgs cmd 2
       removeNode args
