@@ -96,17 +96,6 @@ printColor c = "\t\t\"" ++ show c ++ "\" [color = \"" ++ show c ++ "\";];"
 printColors :: Set.Set Int -> String
 printColors cs = intercalate "\n" (map printColor (sort $ Set.toList cs))
 
-printLegend :: Graph -> String
-printLegend graph =
-  "\t// Legend\n"
-    ++ "\tsubgraph {\n"
-    ++ "\t\tnode [colorscheme = \""
-    ++ colorscheme
-    ++ "\"; style = filled;];\n"
-    ++ printColors (getAllColors graph)
-    ++ "\n"
-    ++ "\t}"
-
 startScreen :: String
 startScreen =
   "digraph {\n"
@@ -116,8 +105,6 @@ startScreen =
 printDotContent :: AAG.Graph -> String
 printDotContent g =
   "digraph {\n"
-    ++ printLegend graph
-    ++ "\n\n"
     ++ printGraph graph
     ++ "\n}"
   where
