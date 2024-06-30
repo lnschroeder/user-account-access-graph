@@ -132,3 +132,5 @@ backend/.vscode/settings.json
 user-account-access-graph.code-workspace
 
 .DS_Store
+*.aag
+*.dot
