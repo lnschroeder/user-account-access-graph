@@ -6,8 +6,7 @@ To run the app locally you have two options using `cabal` or using `docker`:
 ### Using `cabal`
 
 Prerequiste:
-1. install [GHCup](https://www.haskell.org/ghcup/) 
-2. install `postgresql` e.g. with `brew install postgresql`
+install [GHCup](https://www.haskell.org/ghcup/) 
 
 Then run:
 ```sh 

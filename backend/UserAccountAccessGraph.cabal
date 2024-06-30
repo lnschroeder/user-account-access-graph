@@ -28,7 +28,6 @@ executable UserAccountAccessGraph
     AccountAccessGraph
     CommandHandler
     Graphviz
-    Postgres
     RESTController
     Utils
 
@@ -40,7 +39,6 @@ executable UserAccountAccessGraph
     , containers          ^>=0.6.7
     , directory           ^>=1.3.6.2
     , http-types          ^>=0.12.3
-    , postgresql-simple   ^>=0.7.0.0
     , scotty              ^>=0.20.1
     , split               ^>=0.2.3.5
     , text-format-simple  ^>=1.1.0
