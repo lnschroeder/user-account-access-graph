@@ -19,6 +19,7 @@ module AccountAccessGraph
     hasNode,
     hasNodes,
     hasAccess,
+    renameNode,
     removeProtectedBy,
   )
 where
@@ -68,6 +69,18 @@ hasAccess :: String -> [String] -> Graph -> Bool
 hasAccess nname nnames g = Set.fromList nnames `Set.member` protectedBy (fromJust maybeNode)
   where
     maybeNode = getNode nname g
+
+renameNode :: String -> String -> Graph -> Graph
+renameNode oldName newName = map updateNode
+  where
+    updateNode n
+      | name n == oldName = n {name = newName, protectedBy = updatedProtectedBy}
+      | otherwise = n {protectedBy = updatedProtectedBy}
+      where
+        updatedProtectedBy = Set.map (Set.map updateName) (protectedBy n)
+        updateName s
+          | s == oldName = newName
+          | otherwise = s
 
 removeProtectionFromNode :: String -> Node -> Node
 removeProtectionFromNode nname n = n {protectedBy = updatedProtectedBy}
