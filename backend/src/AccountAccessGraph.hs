@@ -10,7 +10,7 @@ module AccountAccessGraph
     addProtectedBy,
     removeNode,
     example,
-    compromiseNodes,
+    compromiseNodesByUser,
     resetAllNode,
     compromiseAllPossibleNodes,
     loadFromFile,
@@ -47,7 +47,7 @@ nodeHasName :: Node -> String -> Bool
 nodeHasName (Node nname _ _) s = s == nname
 
 addNode :: String -> Graph -> Graph
-addNode nname g = g ++ [Node nname Set.empty NotCompromised]
+addNode nname g = recalculateCompromisedNodes $ g ++ [Node nname Set.empty NotCompromised]
 
 getNode :: String -> Graph -> Maybe Node
 getNode nname = find (`nodeHasName` nname)
@@ -67,7 +67,7 @@ hasAccess nname nnames g = Set.fromList nnames `Set.member` protectedBy (fromJus
     maybeNode = getNode nname g
 
 renameNode :: String -> String -> Graph -> Graph
-renameNode oldName newName = map updateNode
+renameNode oldName newName = recalculateCompromisedNodes . map updateNode
   where
     updateNode n
       | name n == oldName = n {name = newName, protectedBy = updatedProtectedBy}
@@ -84,25 +84,27 @@ removeProtectionFromNode nname n = n {protectedBy = updatedProtectedBy}
     updatedProtectedBy = Set.filter (not . null) $ Set.map (Set.delete nname) (protectedBy n)
 
 removeNode :: String -> Graph -> Graph
-removeNode nname g = map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
+removeNode nname g = recalculateCompromisedNodes $ map (removeProtectionFromNode nname) (filter (\x -> name x /= nname) g)
 
 addProtectedBy :: String -> [String] -> Graph -> Graph
 addProtectedBy nname nnames =
-  map
-    ( \x ->
-        if x `nodeHasName` nname
-          then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
-          else x
-    )
+  recalculateCompromisedNodes .
+    map
+      ( \x ->
+          if x `nodeHasName` nname
+            then x {protectedBy = Set.insert (Set.fromList nnames) (protectedBy x)}
+            else x
+      )
 
 removeProtectedBy :: String -> [String] -> Graph -> Graph
 removeProtectedBy nname nnames =
-  map
-    ( \x ->
-        if x `nodeHasName` nname
-          then x {protectedBy = Set.delete (Set.fromList nnames) (protectedBy x)}
-          else x
-    )
+  recalculateCompromisedNodes .
+    map
+      ( \x ->
+          if x `nodeHasName` nname
+            then x {protectedBy = Set.delete (Set.fromList nnames) (protectedBy x)}
+            else x
+      )
 
 getAllCompromisedNodeNames :: Graph -> [String]
 getAllCompromisedNodeNames = map name . filter isCompromised
@@ -122,6 +124,9 @@ setIsCompromised c nname =
 compromiseNodes :: CompromisionType -> [String] -> Graph -> Graph
 compromiseNodes c xs g = foldr (setIsCompromised c) g xs
 
+compromiseNodesByUser :: [String] -> Graph -> Graph
+compromiseNodesByUser nnames = recalculateCompromisedNodes . compromiseNodes User nnames
+
 resetNode :: String -> Graph -> Graph
 resetNode = setIsCompromised NotCompromised
 
@@ -140,6 +145,12 @@ canBeCompromised nname g
 getCompromisableNodes :: Graph -> [String]
 getCompromisableNodes g = [name x | x <- g, not (isCompromised x) && name x `canBeCompromised` g]
 
+getAllAutomaticNodeNames :: Graph -> [String]
+getAllAutomaticNodeNames g = [name x | x <- g, compromisionType x == Automatic]
+
+resetAllAutomaticNodes :: Graph -> Graph
+resetAllAutomaticNodes g = foldr resetNode g (getAllAutomaticNodeNames g)
+
 compromiseAllPossibleNodes :: Graph -> Graph
 compromiseAllPossibleNodes g
   | null compromisableNodes = g
@@ -147,8 +158,11 @@ compromiseAllPossibleNodes g
   where
     compromisableNodes = getCompromisableNodes g
 
+recalculateCompromisedNodes :: Graph -> Graph
+recalculateCompromisedNodes = compromiseAllPossibleNodes . resetAllAutomaticNodes
+
 saveToFile :: FilePath -> Graph -> IO ()
-saveToFile filePath graph = writeFile filePath (show graph)
+saveToFile filePath g = writeFile filePath (show g)
 
 loadFromFile :: FilePath -> Graph
 loadFromFile filePath = unsafePerformIO $ do

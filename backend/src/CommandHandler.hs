@@ -100,7 +100,7 @@ addAccess args graph
       )
   | otherwise =
       ( info "Added access " ++ show names ++ " for node " ++ name,
-        AAG.compromiseAllPossibleNodes $ AAG.addProtectedBy name names graph
+        AAG.addProtectedBy name names graph
       )
   where
     syntaxOk = length args > 1
@@ -131,7 +131,7 @@ removeAccess args graph
       )
   | otherwise =
       ( info "Removed access " ++ show names ++ " for node " ++ name,
-        AAG.compromiseAllPossibleNodes $ AAG.removeProtectedBy name names graph
+        AAG.removeProtectedBy name names graph
       )
   where
     syntaxOk = length args > 1
@@ -148,7 +148,7 @@ compromiseNodes args graph
       )
   | otherwise =
       ( info "Compromised node(s) " ++ show names,
-        AAG.compromiseAllPossibleNodes $ AAG.compromiseNodes AAG.User names graph
+        AAG.compromiseNodesByUser names graph
       )
   where
     syntaxOk = not (null args)
